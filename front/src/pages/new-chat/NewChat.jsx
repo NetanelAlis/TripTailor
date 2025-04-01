@@ -1,5 +1,5 @@
 import ChatTextBox from '../../components/chat-text-box/ChatTextBox';
-import './NewChat.css';
+import './newChat.css';
 
 function NewChat() {
   return (

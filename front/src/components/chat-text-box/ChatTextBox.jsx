@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import './ChatTextBox.css';
+import './chatTextBox.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlaneDeparture } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
@@ -32,13 +32,15 @@ function ChatTextBox({ onSendMessage }) {
               ? 'chat-submit send-button'
               : 'chat-submit-disabled send-button'
           }
-          onClick={() => {
+          onClick={async () => {
             chatBox.current.style.height = 'auto';
             if (onSendMessage) {
-              onSendMessage(userInput);
+              await onSendMessage(userInput);
+              setUserInput('');
+            } else {
+              setUserInput('');
+              navigate('/chat', { state: { userInput } });
             }
-            setUserInput('');
-            navigate('/chat');
           }}
         >
           <FontAwesomeIcon icon={faPlaneDeparture} />

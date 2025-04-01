@@ -1,10 +1,17 @@
-import ChatTextBox from '../chat-text-box/ChatTextBox';
+import ChatTextBox from '../../components/chat-text-box/ChatTextBox';
 import { useState } from 'react';
-import './Chat.css';
-
+import { useLocation } from 'react-router-dom';
+import './chat.css';
 function Chat() {
-  const [message, setMessage] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+  const userInput = location.state?.userInput || {};
+  const [message, setMessage] = useState([
+    {
+      sender: 'user',
+      text: '' + userInput,
+    },
+  ]);
 
   function addNewMessageFromUser(userMessage) {
     setMessage((prevMessage) => {
@@ -35,7 +42,7 @@ function Chat() {
   }
 
   async function handleSendMessage(userMessage) {
-    addNewMessageFromUser(userMessage);
+    addNewMessageFromUser(userMessage); // set the user message in the chat
     setIsLoading(true);
 
     try {
@@ -56,17 +63,23 @@ function Chat() {
   }
 
   return (
-    <div>
-      <h1>Chat Page</h1>
-      <div className="chat-messages">
-        {message.map((msg, index) => (
-          <div key={index} className={`message${msg.sender}`}>
-            {msg.text}
-          </div>
-        ))}
+    <div className="chat-container-chat-page">
+      <div>
+        {message.length > 0 && (
+          <ul className="chat-messages">
+            {message.map((msg, index) => (
+              <li key={index} className={`chat-message ${msg.sender}`}>
+                {msg.text}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {isLoading && <div className="loading-new-chat">Loading...</div>}
       </div>
-      {isLoading && <div className="loading">Loading...</div>}
-      <ChatTextBox onSendMessage={handleSendMessage} />
+      <div className="chat-text-box-container">
+        <ChatTextBox onSendMessage={handleSendMessage} />
+      </div>
     </div>
   );
 }

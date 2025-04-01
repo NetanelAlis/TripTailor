@@ -1,0 +1,94 @@
+.chat-container-chat-page {
+  min-height: 100vh;
+  background-color: #000000;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Centered content */
+.chat-text-box-container {
+  background-color: yellowgreen;
+  position: fixed;
+  top: 85%;
+}
+
+.chat-messages {
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chat-message {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px;
+  justify-content: center;
+}
+
+.message {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* הודעה מהמשתמש */
+.message.user {
+  background-color: #d0eaff;
+  align-self: flex-end;
+  text-align: right;
+  border-bottom-right-radius: 0;
+}
+
+/* תשובה של הבוט */
+.message.bot {
+  background-color: #e0e0e0;
+  align-self: flex-start;
+  text-align: left;
+  border-bottom-left-radius: 0;
+}
+
+/* מצב טעינה */
+.loading {
+  font-style: italic;
+  color: #777;
+  text-align: center;
+  padding: 8px;
+}
+
+/* כפתור שליחה */
+.chat-submit {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.chat-submit:hover {
+  background-color: #0056b3;
+}
+
+.chat-submit-disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

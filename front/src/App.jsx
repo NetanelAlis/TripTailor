@@ -3,7 +3,7 @@ import NewChat from './pages/new-chat/NewChat';
 import Chat from './pages/chat/Chat';
 
 const router = createBrowserRouter([
-  { path: '/new-chat', element: <NewChat /> },
+  { path: '/', element: <NewChat /> },
   { path: '/chat', element: <Chat /> },
 ]);
 
