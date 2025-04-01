@@ -1,4 +1,4 @@
-import ChatTextBox from '../chat-text-box/ChatTextBox';
+import ChatTextBox from '../../components/chat-text-box/ChatTextBox';
 import './NewChat.css';
 
 function NewChat() {
