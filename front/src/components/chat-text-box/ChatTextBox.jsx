@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import './ChatTextBox.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlaneDeparture } from '@fortawesome/free-solid-svg-icons';
 

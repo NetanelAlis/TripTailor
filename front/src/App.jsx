@@ -1,4 +1,4 @@
-import NewChat from './components/NewChat';
+import NewChat from './components/new-chat/NewChat';
 
 function App() {
   return (

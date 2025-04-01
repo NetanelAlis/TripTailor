@@ -1,5 +1,5 @@
-import '../styles/NewChat.css';
-import ChatTextBox from './ChatTextBox';
+import ChatTextBox from '../chat-text-box/ChatTextBox';
+import './NewChat.css';
 
 function NewChat() {
   return (
