@@ -2,10 +2,12 @@ import React, { useRef, useState } from 'react';
 import './ChatTextBox.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlaneDeparture } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
 
-function ChatTextBox() {
+function ChatTextBox({ onSendMessage }) {
   const chatBox = useRef(null);
   const [userInput, setUserInput] = useState('');
+  const navigate = useNavigate();
 
   return (
     <>
@@ -32,7 +34,11 @@ function ChatTextBox() {
           }
           onClick={() => {
             chatBox.current.style.height = 'auto';
+            if (onSendMessage) {
+              onSendMessage(userInput);
+            }
             setUserInput('');
+            navigate('/chat');
           }}
         >
           <FontAwesomeIcon icon={faPlaneDeparture} />
