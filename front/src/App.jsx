@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import NewChat from './pages/new-chat/NewChat';
-import Chat from './components/chat/Chat';
+import Chat from './pages/chat/Chat';
 
 const router = createBrowserRouter([
   { path: '/new-chat', element: <NewChat /> },

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import './Chat.css';
 
 function Chat() {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   function addNewMessageFromUser(userMessage) {
@@ -70,3 +70,5 @@ function Chat() {
     </div>
   );
 }
+
+export default Chat;
