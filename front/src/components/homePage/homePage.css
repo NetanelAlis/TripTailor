@@ -1,0 +1,164 @@
+/* General Reset */
+body, h1, h2, p, ul, li, img, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif; /* A modern, fresh font */
+    line-height: 1.6;
+    color: #333; /* Neutral text color */
+    background-color: #f9f9f9; /* Light background for a fresh feel */
+}
+
+/* Welcome Section */
+.welcome {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centers content vertically */
+    align-items: center; /* Centers content horizontally */
+    text-align: center;
+    background: url('/TripTailor/front/src/assets/welcomeBackground.jpg') no-repeat center center/cover; /* Background image */
+    color: #fff;
+}
+
+.welcome .container {
+    position: relative;
+    z-index: 2; /* Ensures content is above any overlay */
+    max-width: 80%; /* Limits the width of the content */
+}
+
+.logo-area {
+    margin-bottom: 15px;
+}
+
+.logo {
+    max-width: 150px; /* Smaller logo size */
+    height: auto;
+}
+
+h1 {
+    font-size: 2rem; /* Smaller heading size */
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 1rem; /* Smaller paragraph size */
+    margin-bottom: 15px;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px; /* Adds spacing between the buttons and other elements */
+    justify-content: center; /* Ensures buttons are horizontally centered */
+}
+
+.auth-buttons button {
+    padding: 8px 16px; /* Smaller button size */
+    font-size: 0.9rem; /* Smaller font size for buttons */
+    font-weight: bold;
+    color: #fff;
+    background-color: #ff6f61; /* Button color */
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.auth-buttons button:hover {
+    background-color: #ff3b2f; /* Darker shade on hover */
+    transform: scale(1.05); /* Slight zoom effect */
+}
+
+/* About Section */
+.about {
+    padding: 100px 20px;
+    background: url('/TripTailor/front/src/assets/about.jpg') no-repeat center center/cover; /* Background image */
+    color: #333;
+    text-align: center;
+    cursor: default; /* Default cursor for the paragraph */
+
+}
+
+.about h2 {
+    font-size: 2rem; /* Slightly smaller font size for the heading */
+    margin-bottom: 20px;
+    color: #cb14a3; /* Coral accent */
+}
+
+.about p {
+    font-size: 1rem; /* Smaller font size for the paragraph */
+    padding: 0 300px; /* Padding for better readability on smaller screens */
+    margin-bottom: 20px;
+    line-height: 1.6; /* Adjusted line height for better readability */
+    color: rgb(183, 179, 179); /* White text for contrast against the background */
+}
+
+/* About the Team Section */
+.team {
+    padding: 100px 20px;
+    background: url('/TripTailor/front/src/assets/about3.jpg') no-repeat center center/cover; /* Background image */
+    color: #333;
+    text-align: center;
+    cursor: default; /* Default cursor for the paragraph */
+
+}
+
+.team h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: rgb(34, 33, 33); /* Vibrant blue accent */
+}
+
+.team-members {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.team-member {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 300px;
+    text-align: center;
+}
+
+.team-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    object-fit: cover;
+}
+
+.team-member h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #ff6f61; /* Coral accent */
+}
+
+.team-member p {
+    font-size: 1rem;
+    color: #555;
+}
+
+/* Footer */
+.footer {
+    padding: 20px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+}
+
+.footer p {
+    font-size: 0.8rem; /* Smaller font size for the paragraph */
+    margin: 0;
+}
