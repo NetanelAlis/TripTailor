@@ -1,79 +1,107 @@
 .chat-container-chat-page {
   min-height: 100vh;
-  background-color: #000000;
-  color: white;
+  background-color: gray;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 100%;
+  height: 100%;
+  gap: 50px;
+  position: relative;
 }
 
-/* Centered content */
+.messages-container {
+  color: #000;
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 15px;
+
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  padding-bottom: 150px;
+}
+
+.message {
+  background-color: #dee2e6;
+  border-radius: 16px;
+  padding: 10px;
+  font-size: 14px;
+}
+
 .chat-text-box-container {
-  background-color: yellowgreen;
   position: fixed;
   top: 85%;
 }
 
-.chat-messages {
+/* .chat-messages {
   padding: 16px;
   max-height: 70vh;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background-color: #1e1e1e;
   border-radius: 12px;
   margin-bottom: 16px;
   list-style: none;
   padding: 0;
   margin: 0;
-}
+  align-items: flex-start;
+} */
 
-.chat-message {
+/* .chat-message {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
   padding: 10px;
   justify-content: center;
-}
+  background-color: grey;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  max-width: 58%;
+} */
 
-.message {
+/* .message {
   max-width: 70%;
   padding: 10px 14px;
   border-radius: 16px;
   font-size: 15px;
   line-height: 1.4;
   word-wrap: break-word;
-}
+  border-bottom: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+} */
 
-/* הודעה מהמשתמש */
-.message.user {
+/* .message.user {
   background-color: #d0eaff;
   align-self: flex-end;
   text-align: right;
   border-bottom-right-radius: 0;
-}
-
-/* תשובה של הבוט */
+} */
+/* 
 .message.bot {
   background-color: #e0e0e0;
   align-self: flex-start;
   text-align: left;
   border-bottom-left-radius: 0;
-}
+} */
 
-/* מצב טעינה */
-.loading {
+/* .loading {
   font-style: italic;
   color: #777;
   text-align: center;
   padding: 8px;
-}
+} */
 
-/* כפתור שליחה */
-.chat-submit {
+/* .chat-submit {
   background-color: #007bff;
   color: white;
   border: none;
@@ -82,13 +110,13 @@
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-}
+} */
 
-.chat-submit:hover {
+/* .chat-submit:hover {
   background-color: #0056b3;
-}
+} */
 
-.chat-submit-disabled {
+/* .chat-submit-disabled {
   background-color: #ccc;
   cursor: not-allowed;
-}
+} */

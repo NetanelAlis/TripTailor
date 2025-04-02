@@ -1,20 +1,22 @@
 import ChatTextBox from '../../components/chat-text-box/ChatTextBox';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import './chat.css';
+
 function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
   const userInput = location.state?.userInput || {};
-  const [message, setMessage] = useState([
+  const [messages, setMessages] = useState([
     {
       sender: 'user',
       text: '' + userInput,
     },
   ]);
+  const bottomRef = useRef(null);
 
   function addNewMessageFromUser(userMessage) {
-    setMessage((prevMessage) => {
+    setMessages((prevMessage) => {
       const updatedMessage = [
         ...prevMessage,
         {
@@ -28,7 +30,7 @@ function Chat() {
   }
 
   function addNewMessageFromBot(botMessage) {
-    setMessage((prevMessage) => {
+    setMessages((prevMessage) => {
       const updatedMessage = [
         ...prevMessage,
         {
@@ -42,7 +44,7 @@ function Chat() {
   }
 
   async function handleSendMessage(userMessage) {
-    addNewMessageFromUser(userMessage); // set the user message in the chat
+    addNewMessageFromUser(userMessage);
     setIsLoading(true);
 
     try {
@@ -62,21 +64,27 @@ function Chat() {
     }
   }
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   return (
     <div className="chat-container-chat-page">
-      <div>
-        {message.length > 0 && (
-          <ul className="chat-messages">
-            {message.map((msg, index) => (
-              <li key={index} className={`chat-message ${msg.sender}`}>
-                {msg.text}
+      {messages.length > 0 && (
+        <ul className="messages-list">
+          {messages.map((message, index) => {
+            const listItem = (
+              <li key={index} className={`message ${message.sender}`}>
+                {message.text}
               </li>
-            ))}
-          </ul>
-        )}
+            );
+            return listItem;
+          })}
+          <div ref={bottomRef}></div>
+        </ul>
+      )}
 
-        {isLoading && <div className="loading-new-chat">Loading...</div>}
-      </div>
+      {/* {isLoading && <div className="loading-new-chat">Loading...</div>} */}
       <div className="chat-text-box-container">
         <ChatTextBox onSendMessage={handleSendMessage} />
       </div>
