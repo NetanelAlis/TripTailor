@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import './chatTextBox.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlaneDeparture } from '@fortawesome/free-solid-svg-icons';
@@ -8,10 +8,38 @@ function ChatTextBox({ onSendMessage }) {
   const chatBox = useRef(null);
   const [userInput, setUserInput] = useState('');
   const navigate = useNavigate();
+  const [isFocus, setIsFocus] = useState(false);
+
+  const handleSendMessage = useCallback(async () => {
+    chatBox.current.style.height = 'auto';
+    if (onSendMessage) {
+      await onSendMessage(userInput);
+      setUserInput('');
+    } else {
+      setUserInput('');
+      navigate('/chat', { state: { userInput } });
+    }
+  }, [userInput, onSendMessage, navigate]);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e?.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    }
+
+    handleKeyDown();
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleSendMessage]);
 
   return (
     <>
-      <div className="chat-box">
+      <div className={`chat-box ${isFocus ? 'text-area-focus' : ''}`}>
         <textarea
           className="chat-input"
           placeholder="Ask anything"
@@ -21,6 +49,12 @@ function ChatTextBox({ onSendMessage }) {
             e.target.style.height = 'auto';
             e.target.style.height = `${e.target.scrollHeight}px`;
             setUserInput(e.target.value);
+          }}
+          onFocus={() => {
+            setIsFocus(true);
+          }}
+          onBlur={() => {
+            setIsFocus(false);
           }}
           value={userInput}
         />
@@ -32,16 +66,7 @@ function ChatTextBox({ onSendMessage }) {
               ? 'chat-submit send-button'
               : 'chat-submit-disabled send-button'
           }
-          onClick={async () => {
-            chatBox.current.style.height = 'auto';
-            if (onSendMessage) {
-              await onSendMessage(userInput);
-              setUserInput('');
-            } else {
-              setUserInput('');
-              navigate('/chat', { state: { userInput } });
-            }
-          }}
+          onClick={handleSendMessage}
         >
           <FontAwesomeIcon icon={faPlaneDeparture} />
         </button>

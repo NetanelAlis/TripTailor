@@ -1,5 +1,5 @@
 import ChatTextBox from '../../components/chat-text-box/ChatTextBox';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import './chat.css';
 
@@ -15,7 +15,7 @@ function Chat() {
   ]);
   const bottomRef = useRef(null);
 
-  function addNewMessageFromUser(userMessage) {
+  const addNewMessageFromUser = useCallback((userMessage) => {
     setMessages((prevMessage) => {
       const updatedMessage = [
         ...prevMessage,
@@ -27,9 +27,9 @@ function Chat() {
 
       return updatedMessage;
     });
-  }
+  }, []);
 
-  function addNewMessageFromBot(botMessage) {
+  const addNewMessageFromBot = useCallback((botMessage) => {
     setMessages((prevMessage) => {
       const updatedMessage = [
         ...prevMessage,
@@ -41,28 +41,31 @@ function Chat() {
 
       return updatedMessage;
     });
-  }
+  }, []);
 
-  async function handleSendMessage(userMessage) {
-    addNewMessageFromUser(userMessage);
-    setIsLoading(true);
+  const handleSendMessage = useCallback(
+    async (userMessage) => {
+      addNewMessageFromUser(userMessage);
+      setIsLoading(true);
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-      });
-      const data = await response.json();
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message: userMessage }),
+        });
+        const data = await response.json();
 
-      addNewMessageFromBot(data.message);
-      setIsLoading(false);
-    } catch (error) {
-      addNewMessageFromBot('Error: ' + error.message);
-    }
-  }
+        addNewMessageFromBot(data.message);
+        setIsLoading(false);
+      } catch (error) {
+        addNewMessageFromBot('Error: ' + error.message);
+      }
+    },
+    [addNewMessageFromBot, addNewMessageFromUser]
+  );
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

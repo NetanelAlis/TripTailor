@@ -8,7 +8,6 @@
   gap: 8px;
   max-width: 90vw;
   width: 500px;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
 /* Input field */
@@ -80,4 +79,8 @@
   position: absolute;
   top: -50px;
   right: 0;
+}
+
+.text-area-focus {
+  box-shadow: 0 0 5px #d0ebff;
 }
