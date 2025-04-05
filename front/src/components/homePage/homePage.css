@@ -21,8 +21,10 @@ body {
     justify-content: center; /* Centers content vertically */
     align-items: center; /* Centers content horizontally */
     text-align: center;
-    background: url('/TripTailor/front/src/assets/welcomeBackground.jpg') no-repeat center center/cover; /* Background image */
+    background: url('/TripTailor/front/src/assets/welcome-bg.jpg') no-repeat center center/cover; /* Background image */
     color: #fff;
+    box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5); /* Adds shadow for floating effect */
+    
 }
 
 .welcome .container {
@@ -32,23 +34,19 @@ body {
 }
 
 .logo-area {
-    margin-bottom: 15px;
+    margin-bottom: -30px;
 }
 
 .logo {
-    max-width: 150px; /* Smaller logo size */
+    max-width: 200px;
     height: auto;
 }
 
 h1 {
-    font-size: 2rem; /* Smaller heading size */
+    font-size: 1.5rem; /* Smaller heading size */
     font-weight: bold;
     margin-bottom: 10px;
-}
-
-p {
-    font-size: 1rem; /* Smaller paragraph size */
-    margin-bottom: 15px;
+    color:#034d8a; /* Vibrant blue accent */
 }
 
 .auth-buttons {
@@ -63,32 +61,41 @@ p {
     font-size: 0.9rem; /* Smaller font size for buttons */
     font-weight: bold;
     color: #fff;
-    background-color: #ff6f61; /* Button color */
+    background-color: #0e89d1; /* Button color */
     border: none;
     border-radius: 20px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover effect */
+    box-shadow: rgba(0, 0, 0, 0.56) 0px 5px 10px 2px;
+} 
 
 .auth-buttons button:hover {
-    background-color: #ff3b2f; /* Darker shade on hover */
+    background-color: #034d8a; /* Darker shade on hover */
     transform: scale(1.05); /* Slight zoom effect */
+    box-shadow: rgba(0, 0, 0, 0.56) 0px 8px 15px 4px;
+}
+
+/* separator Section */
+.separator {
+    width: 100%;
+    height: 100px; /* Height of the separator */
+    margin: 100px 0; /* Margin for spacing */
 }
 
 /* About Section */
 .about {
     padding: 100px 20px;
-    background: url('/TripTailor/front/src/assets/about.jpg') no-repeat center center/cover; /* Background image */
+    background: url('/TripTailor/front/src/assets/about-bg.jpg') no-repeat center center/cover; /* Background image */
     color: #333;
     text-align: center;
     cursor: default; /* Default cursor for the paragraph */
-
+    box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.5), 0 20px 20px rgba(0, 0, 0, 0.5); /*Shadow above and below */
 }
 
 .about h2 {
     font-size: 2rem; /* Slightly smaller font size for the heading */
     margin-bottom: 20px;
-    color: #cb14a3; /* Coral accent */
+    color: #9d7b79; /* Coral accent */
 }
 
 .about p {
@@ -101,18 +108,19 @@ p {
 
 /* About the Team Section */
 .team {
-    padding: 100px 20px;
-    background: url('/TripTailor/front/src/assets/about3.jpg') no-repeat center center/cover; /* Background image */
+    padding: 130px 20px;
+    background: url('/TripTailor/front/src/assets/meet-the-team-bg.jpg') no-repeat center center/cover; /* Background image */
     color: #333;
     text-align: center;
     cursor: default; /* Default cursor for the paragraph */
-
+    box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.5);
+    
 }
 
 .team h2 {
     font-size: 2.5rem;
     margin-bottom: 20px;
-    color: rgb(34, 33, 33); /* Vibrant blue accent */
+    color: #352e37; /* Vibrant blue accent */
 }
 
 .team-members {
@@ -125,10 +133,16 @@ p {
 .team-member {
     background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Adds a subtle shadow */
     padding: 20px;
     max-width: 300px;
     text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.team-member:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); /* Stronger shadow on hover */
 }
 
 .team-photo {
