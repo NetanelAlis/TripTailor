@@ -4,7 +4,14 @@ html, body {
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #000000;
-    color: white;
+    color: rgb(15, 15, 15);
+    background-image: url('images/glaciers.jpg'); /* שמו של קובץ התמונה */
+    background-size: 50%; /* התמונה תקטן ל-50% מגודלה המקורי */
+    background-attachment: fixed; /* התמונה תישאר קבועה בזמן גלילה */
+    background-repeat: no-repeat; /* התמונה לא תחזור על עצמה */
+    background-size: cover; /* התמונה תתאים לגודל הרקע מבלי לחתוך אותה */
+    background-position: center center; /* התמונה תישאר ממורכזת */
+
 }
 
 /* Navbar Styling */
@@ -13,21 +20,45 @@ html, body {
     top: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(to right, #fbbd6b, #ff7e5f);
+    background: linear-gradient(to right, #e5e9eb, #90c9e7 , #09aac7);
     padding: 15px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     z-index: 1000;
+
+    
 }
+
+.navbar img {
+    width: 35px; /* רוחב התמונה */
+    height: auto; /* גובה מותאם אוטומטית לשמור על יחס התמונה */
+    margin-right: 10px; 
+  }
+  
+  .navbar .logo span {
+    margin-left: 10px; 
+}
+
 
 /* Logo Styling */
 .logo {
     font-size: 24px;
     font-weight: bold;
-    color: white;
+    color: #062b55;
+    display: flex;
+    align-items: center;
 }
+
+.suiteCaseLogo {
+    display: block; 
+    margin: 0 auto -40px; 
+    height: 200px; /* שומר על הפרופורציות */
+}
+
+
+
 
 /* Navigation Links */
 .nav-links {
@@ -47,6 +78,10 @@ html, body {
     color: white;
     font-weight: bold;
     transition: color 0.3s;
+    position: relative;
+
+    left: -60px; /* דוחף את הלינקים שמאלה */
+
 }
 
 .nav-links a:hover {
@@ -55,12 +90,20 @@ html, body {
 
 /* Chat Container Styling */
 .chat-container {
-    margin-top: 80px; /* Adjust based on Navbar height */
+    margin-top: 40px; /* Adjust based on Navbar height */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: calc(100vh - 80px);
+    
+}
+
+.chat-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #062b55; /* Change title color to white */
+    
 }
 
 /* Chat Box Styling */
@@ -73,7 +116,7 @@ html, body {
     gap: 8px;
     max-width: 90vw;
     width: 500px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.4)
 }
 
 /* Chat Input Field */
@@ -90,22 +133,43 @@ html, body {
     overflow: hidden;
 }
 
-/* Submit Button Styling */
-.send-button {
-    background-color: #ff7e5f;
+/* New Button Container */
+.button-container {
+    display: flex;
+    justify-content: flex-start; /* Align buttons to the left */
+    gap: 10px;
+    margin-top: 90px; /* Adjust the space from the navbar */
+    margin-left: 15px; 
+    position: relative; /* Ensures buttons are not hidden behind other elements */
+    z-index: 1; /* Makes sure buttons are on top if needed */
+}
+
+/* Sidebar Button */
+.sidebar-btn,
+.another-btn {
+    /* background: linear-gradient(to right, #0077b6, #35a7bb); */
+    background-color: transparent;
     color: white;
     border: none;
-    padding: 10px 16px;
+    padding: 8px 12px;
     border-radius: 8px;
     cursor: pointer;
+    font-size: 14px;
     transition: background-color 0.3s ease;
-    .send-button {
-    margin-top: 20px; /* Moves button further down */
-    
 }
 
+.sidebar-btn:hover,
+.another-btn:hover {
+    background-color: #90e0ef;
 }
 
-.send-button:hover {
-    background-color: #fbbd6b;
+/* Image inside the button */
+.sidebar-btn img,
+.another-btn img {
+    width: 20px; /* קטן את רוחב התמונה */
+    height: 20px; /* קטן את גובה התמונה */
+    object-fit: contain; /* שומר על יחס הפרופורציות של התמונה */
 }
+
+
+
