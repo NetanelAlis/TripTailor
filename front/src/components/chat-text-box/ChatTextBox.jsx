@@ -12,7 +12,7 @@ function ChatTextBox({ onSendMessage }) {
 
   const handleSendMessage = useCallback(async () => {
     chatBox.current.style.height = 'auto';
-    if (onSendMessage) {
+    if (onSendMessage && userInput != '') {
       await onSendMessage(userInput);
       setUserInput('');
     } else {

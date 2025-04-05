@@ -5,6 +5,7 @@ import './chat.css';
 
 function Chat() {
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState([]);
   const location = useLocation();
   const userInput = location.state?.userInput || {};
   const [messages, setMessages] = useState([
@@ -15,27 +16,13 @@ function Chat() {
   ]);
   const bottomRef = useRef(null);
 
-  const addNewMessageFromUser = useCallback((userMessage) => {
+  const addNewMessage = useCallback((userMessage, sender = 'user') => {
     setMessages((prevMessage) => {
       const updatedMessage = [
         ...prevMessage,
         {
-          sender: 'user',
+          sender: sender,
           text: userMessage,
-        },
-      ];
-
-      return updatedMessage;
-    });
-  }, []);
-
-  const addNewMessageFromBot = useCallback((botMessage) => {
-    setMessages((prevMessage) => {
-      const updatedMessage = [
-        ...prevMessage,
-        {
-          sender: 'bot',
-          text: botMessage,
         },
       ];
 
@@ -45,26 +32,29 @@ function Chat() {
 
   const handleSendMessage = useCallback(
     async (userMessage) => {
-      addNewMessageFromUser(userMessage);
+      addNewMessage(userMessage); // מציג את ההודעה של המשתמש
       setIsLoading(true);
 
       try {
-        const response = await fetch('/api/chat', {
+        const response = await fetch('http://localhost:3000/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ message: userMessage }),
         });
-        const data = await response.json();
 
-        addNewMessageFromBot(data.message);
+        const data = await response.json();
+        console.log(data.message);
+
+        addNewMessage(data.message, 'bot');
         setIsLoading(false);
       } catch (error) {
-        addNewMessageFromBot('Error: ' + error.message);
+        setIsLoading(false);
+        setErrors((prevErrors) => [...prevErrors, error.message]);
       }
     },
-    [addNewMessageFromBot, addNewMessageFromUser]
+    [addNewMessage]
   );
 
   useEffect(() => {
@@ -83,11 +73,14 @@ function Chat() {
             );
             return listItem;
           })}
+          {isLoading && (
+            <li className="message bot loading-message">
+              ⏳ המטוס ממריא...<p>ההודעה בדרך אליך</p>
+            </li>
+          )}
           <div ref={bottomRef}></div>
         </ul>
       )}
-
-      {/* {isLoading && <div className="loading-new-chat">Loading...</div>} */}
       <div className="chat-text-box-container">
         <ChatTextBox onSendMessage={handleSendMessage} />
       </div>
@@ -96,3 +89,4 @@ function Chat() {
 }
 
 export default Chat;
+
