@@ -1,35 +1,39 @@
-import './HomePage.css';
+import styles from './HomePage.module.css';
 
 export default function HomePage() {
     return (
-        <div className="home-page">
-            <header class="welcome">
-                <div class="container">
-                    <div class="logo-area">
+        <div className={styles['home-page']}>
+            <header className={styles['welcome']}>
+                <div className={styles['container']}>
+                    <div className={styles['logo-area']}>
                         <img
                             src="src/assets/images/logo.png"
                             alt="TripTailor Logo"
-                            class="logo"
+                            className={styles['logo']}
                         />
                     </div>
-                    <h1 class="home-page-slogan">
+                    <h1 className={styles['home-page-slogan']}>
                         Your personalized travel planning assistant.
                     </h1>
-                    <div class="auth-buttons">
-                        <button onclick="location.href='/signup'">
+                    <div className={styles['auth-buttons']}>
+                        <button
+                            onClick={() => (window.location.href = '/signup')}
+                        >
                             Sign Up
                         </button>
-                        <button onclick="location.href='/signin'">
+                        <button
+                            onClick={() => (window.location.href = '/signin')}
+                        >
                             Sign In
                         </button>
                     </div>
                 </div>
             </header>
 
-            <section class="separator"></section>
+            <section className={styles['separator']}></section>
 
-            <section id="about" class="about">
-                <div class="container">
+            <section id="about" className={styles['about']}>
+                <div className={styles['container']}>
                     <h2>Discover the Magic of TripTailor</h2>
                     <p>
                         TripTailor is your AI-powered travel companion,
@@ -47,17 +51,17 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section class="separator"></section>
+            <section className={styles['separator']}></section>
 
-            <section id="team" class="team">
-                <div class="container">
+            <section id="team" className={styles['team']}>
+                <div className={styles['container']}>
                     <h2>Meet the Team</h2>
-                    <div class="team-members">
-                        <div class="team-member">
+                    <div className={styles['team-members']}>
+                        <div className={styles['team-member']}>
                             <img
                                 src="src/assets/images/team1.jpg"
                                 alt="Team Member 1"
-                                class="team-photo"
+                                className={styles['team-photo']}
                             />
                             <h3>John Doe</h3>
                             <p>
@@ -65,11 +69,11 @@ export default function HomePage() {
                                 technology.
                             </p>
                         </div>
-                        <div class="team-member">
+                        <div className={styles['team-member']}>
                             <img
                                 src="src/assets/images/team2.jpg"
                                 alt="Team Member 2"
-                                class="team-photo"
+                                className={styles['team-photo']}
                             />
                             <h3>Jane Smith</h3>
                             <p>
@@ -77,11 +81,11 @@ export default function HomePage() {
                                 experiences.
                             </p>
                         </div>
-                        <div class="team-member">
+                        <div className={styles['team-member']}>
                             <img
                                 src="src/assets/images/team3.jpg"
                                 alt="Team Member 3"
-                                class="team-photo"
+                                className={styles['team-photo']}
                             />
                             <h3>Emily Johnson</h3>
                             <p>
@@ -93,8 +97,8 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <footer class="footer">
-                <div class="container">
+            <footer className={styles['footer']}>
+                <div className={styles['container']}>
                     <p>&copy; 2025 TripTailor. All rights reserved.</p>
                 </div>
             </footer>

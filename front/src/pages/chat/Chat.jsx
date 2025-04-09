@@ -1,91 +1,98 @@
 import ChatTextBox from '../../components/chat-text-box/ChatTextBox';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import './chat.css';
+import styles from './chat.module.css';
 
 function Chat() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState([]);
-  const location = useLocation();
-  const userInput = location.state?.userInput || {};
-  const [messages, setMessages] = useState([
-    {
-      sender: 'user',
-      text: '' + userInput,
-    },
-  ]);
-  const bottomRef = useRef(null);
-
-  const addNewMessage = useCallback((userMessage, sender = 'user') => {
-    setMessages((prevMessage) => {
-      const updatedMessage = [
-        ...prevMessage,
+    const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState([]);
+    const location = useLocation();
+    const userInput = location.state?.userInput || {};
+    const [messages, setMessages] = useState([
         {
-          sender: sender,
-          text: userMessage,
+            sender: 'user',
+            text: '' + userInput,
         },
-      ];
+    ]);
+    const bottomRef = useRef(null);
 
-      return updatedMessage;
-    });
-  }, []);
+    const addNewMessage = useCallback((userMessage, sender = 'user') => {
+        setMessages((prevMessage) => {
+            const updatedMessage = [
+                ...prevMessage,
+                {
+                    sender: sender,
+                    text: userMessage,
+                },
+            ];
 
-  const handleSendMessage = useCallback(
-    async (userMessage) => {
-      addNewMessage(userMessage); // מציג את ההודעה של המשתמש
-      setIsLoading(true);
-
-      try {
-        const response = await fetch('http://localhost:3000/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ message: userMessage }),
+            return updatedMessage;
         });
+    }, []);
 
-        const data = await response.json();
-        console.log(data.message);
+    const handleSendMessage = useCallback(
+        async (userMessage) => {
+            addNewMessage(userMessage);
+            setIsLoading(true);
 
-        addNewMessage(data.message, 'bot');
-        setIsLoading(false);
-      } catch (error) {
-        setIsLoading(false);
-        setErrors((prevErrors) => [...prevErrors, error.message]);
-      }
-    },
-    [addNewMessage]
-  );
+            try {
+                const response = await fetch('http://localhost:3000/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: userMessage }),
+                });
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+                const data = await response.json();
+                console.log(data.message);
 
-  return (
-    <div className="chat-container-chat-page">
-      {messages.length > 0 && (
-        <ul className="messages-list">
-          {messages.map((message, index) => {
-            const listItem = (
-              <li key={index} className={`message ${message.sender}`}>
-                {message.text}
-              </li>
-            );
-            return listItem;
-          })}
-          {isLoading && (
-            <li className="message bot loading-message">
-              ⏳ המטוס ממריא...<p>ההודעה בדרך אליך</p>
-            </li>
-          )}
-          <div ref={bottomRef}></div>
-        </ul>
-      )}
-      <div className="chat-text-box-container">
-        <ChatTextBox onSendMessage={handleSendMessage} />
-      </div>
-    </div>
-  );
+                addNewMessage(data.message, 'bot');
+                setIsLoading(false);
+            } catch (error) {
+                setIsLoading(false);
+                setErrors((prevErrors) => [...prevErrors, error.message]);
+            }
+        },
+        [addNewMessage]
+    );
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    return (
+        <div className={styles['chat-container-chat-page']}>
+            {messages.length > 0 && (
+                <ul className={styles['messages-list']}>
+                    {messages.map((message, index) => {
+                        const listItem = (
+                            <li
+                                key={index}
+                                className={`${styles['message']} ${
+                                    styles[message.sender]
+                                }`}
+                            >
+                                {message.text}
+                            </li>
+                        );
+                        return listItem;
+                    })}
+                    {isLoading && (
+                        <li
+                            className={`${styles['message']} ${styles['bot']} ${styles['loading-message']}`}
+                        >
+                            ⏳ המטוס ממריא...<p>ההודעה בדרך אליך</p>
+                        </li>
+                    )}
+                    <div ref={bottomRef}></div>
+                </ul>
+            )}
+            <div className={styles['chat-text-box-container']}>
+                <ChatTextBox onSendMessage={handleSendMessage} />
+            </div>
+        </div>
+    );
 }
 
 export default Chat;
