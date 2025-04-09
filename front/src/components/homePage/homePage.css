@@ -1,0 +1,178 @@
+/* General Reset */
+body, h1, h2, p, ul, li, img, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif; /* A modern, fresh font */
+    line-height: 1.6;
+    color: #333; /* Neutral text color */
+    background-color: #f9f9f9; /* Light background for a fresh feel */
+}
+
+/* Welcome Section */
+.welcome {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centers content vertically */
+    align-items: center; /* Centers content horizontally */
+    text-align: center;
+    background: url('/TripTailor/front/src/assets/welcome-bg.jpg') no-repeat center center/cover; /* Background image */
+    color: #fff;
+    box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5); /* Adds shadow for floating effect */
+    
+}
+
+.welcome .container {
+    position: relative;
+    z-index: 2; /* Ensures content is above any overlay */
+    max-width: 80%; /* Limits the width of the content */
+}
+
+.logo-area {
+    margin-bottom: -30px;
+}
+
+.logo {
+    max-width: 200px;
+    height: auto;
+}
+
+h1 {
+    font-size: 1.5rem; /* Smaller heading size */
+    font-weight: bold;
+    margin-bottom: 10px;
+    color:#034d8a; /* Vibrant blue accent */
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px; /* Adds spacing between the buttons and other elements */
+    justify-content: center; /* Ensures buttons are horizontally centered */
+}
+
+.auth-buttons button {
+    padding: 8px 16px; /* Smaller button size */
+    font-size: 0.9rem; /* Smaller font size for buttons */
+    font-weight: bold;
+    color: #fff;
+    background-color: #0e89d1; /* Button color */
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover effect */
+    box-shadow: rgba(0, 0, 0, 0.56) 0px 5px 10px 2px;
+} 
+
+.auth-buttons button:hover {
+    background-color: #034d8a; /* Darker shade on hover */
+    transform: scale(1.05); /* Slight zoom effect */
+    box-shadow: rgba(0, 0, 0, 0.56) 0px 8px 15px 4px;
+}
+
+/* separator Section */
+.separator {
+    width: 100%;
+    height: 100px; /* Height of the separator */
+    margin: 100px 0; /* Margin for spacing */
+}
+
+/* About Section */
+.about {
+    padding: 100px 20px;
+    background: url('/TripTailor/front/src/assets/about-bg.jpg') no-repeat center center/cover; /* Background image */
+    color: #333;
+    text-align: center;
+    cursor: default; /* Default cursor for the paragraph */
+    box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.5), 0 20px 20px rgba(0, 0, 0, 0.5); /*Shadow above and below */
+}
+
+.about h2 {
+    font-size: 2rem; /* Slightly smaller font size for the heading */
+    margin-bottom: 20px;
+    color: #9d7b79; /* Coral accent */
+}
+
+.about p {
+    font-size: 1rem; /* Smaller font size for the paragraph */
+    padding: 0 300px; /* Padding for better readability on smaller screens */
+    margin-bottom: 20px;
+    line-height: 1.6; /* Adjusted line height for better readability */
+    color: rgb(183, 179, 179); /* White text for contrast against the background */
+}
+
+/* About the Team Section */
+.team {
+    padding: 130px 20px;
+    background: url('/TripTailor/front/src/assets/meet-the-team-bg.jpg') no-repeat center center/cover; /* Background image */
+    color: #333;
+    text-align: center;
+    cursor: default; /* Default cursor for the paragraph */
+    box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.5);
+    
+}
+
+.team h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #352e37; /* Vibrant blue accent */
+}
+
+.team-members {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.team-member {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Adds a subtle shadow */
+    padding: 20px;
+    max-width: 300px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.team-member:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); /* Stronger shadow on hover */
+}
+
+.team-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    object-fit: cover;
+}
+
+.team-member h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #ff6f61; /* Coral accent */
+}
+
+.team-member p {
+    font-size: 1rem;
+    color: #555;
+}
+
+/* Footer */
+.footer {
+    padding: 20px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+}
+
+.footer p {
+    font-size: 0.8rem; /* Smaller font size for the paragraph */
+    margin: 0;
+}
