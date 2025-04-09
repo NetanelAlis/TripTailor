@@ -1,5 +1,12 @@
 /* General Reset */
-body, h1, h2, p, ul, li, img, button {
+body,
+h1,
+h2,
+p,
+ul,
+li,
+img,
+button {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -12,6 +19,11 @@ body {
     background-color: #f9f9f9; /* Light background for a fresh feel */
 }
 
+.home-page {
+    /* min-height: 100vh; Full viewport height */
+    background-color: #f0f0f0; /* Light background for a fresh feel */
+}
+
 /* Welcome Section */
 .welcome {
     position: relative;
@@ -21,10 +33,10 @@ body {
     justify-content: center; /* Centers content vertically */
     align-items: center; /* Centers content horizontally */
     text-align: center;
-    background: url('/TripTailor/front/src/assets/welcome-bg.jpg') no-repeat center center/cover; /* Background image */
+    background: url('src/assets/images/welcome-bg.jpg') no-repeat center
+        center/cover; /* Background image */
     color: #fff;
     box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5); /* Adds shadow for floating effect */
-    
 }
 
 .welcome .container {
@@ -42,11 +54,11 @@ body {
     height: auto;
 }
 
-h1 {
+.home-page-slogan {
     font-size: 1.5rem; /* Smaller heading size */
     font-weight: bold;
     margin-bottom: 10px;
-    color:#034d8a; /* Vibrant blue accent */
+    color: #034d8a; /* Vibrant blue accent */
 }
 
 .auth-buttons {
@@ -65,9 +77,10 @@ h1 {
     border: none;
     border-radius: 20px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover effect */
+    transition: background-color 0.3s ease, transform 0.2s ease,
+        box-shadow 0.2s ease; /* Smooth transition for hover effect */
     box-shadow: rgba(0, 0, 0, 0.56) 0px 5px 10px 2px;
-} 
+}
 
 .auth-buttons button:hover {
     background-color: #034d8a; /* Darker shade on hover */
@@ -85,7 +98,8 @@ h1 {
 /* About Section */
 .about {
     padding: 100px 20px;
-    background: url('/TripTailor/front/src/assets/about-bg.jpg') no-repeat center center/cover; /* Background image */
+    background: url('src/assets/images/about-bg.jpg') no-repeat center
+        center/cover; /* Background image */
     color: #333;
     text-align: center;
     cursor: default; /* Default cursor for the paragraph */
@@ -103,18 +117,22 @@ h1 {
     padding: 0 300px; /* Padding for better readability on smaller screens */
     margin-bottom: 20px;
     line-height: 1.6; /* Adjusted line height for better readability */
-    color: rgb(183, 179, 179); /* White text for contrast against the background */
+    color: rgb(
+        183,
+        179,
+        179
+    ); /* White text for contrast against the background */
 }
 
 /* About the Team Section */
 .team {
     padding: 130px 20px;
-    background: url('/TripTailor/front/src/assets/meet-the-team-bg.jpg') no-repeat center center/cover; /* Background image */
+    background: url('src/assets/images/meet-the-team-bg.jpg') no-repeat center
+        center/cover; /* Background image */
     color: #333;
     text-align: center;
     cursor: default; /* Default cursor for the paragraph */
     box-shadow: 0 -20px 20px rgba(0, 0, 0, 0.5);
-    
 }
 
 .team h2 {
