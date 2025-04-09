@@ -1,6 +1,6 @@
 .chat-container-chat-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e1f29, #2c2f3a);
+  background-color: #edf2ff;
   display: flex;
   flex-direction: column;
   justify-content: center;
