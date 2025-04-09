@@ -1,0 +1,94 @@
+.chat-container-chat-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e1f29, #2c2f3a);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 100%;
+  height: 100%;
+  gap: 50px;
+  position: relative;
+  padding: 0 20px;
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 15px;
+
+  list-style: none;
+  padding: 0;
+  padding-bottom: 150px;
+  width: 50%;
+}
+
+.chat-text-box-container {
+  position: fixed;
+  top: 85%;
+}
+
+.message {
+  display: inline-block; /* שמירה על גודל התוכן */
+  max-width: 50%; /* הגבלת רוחב מקסימלי */
+  padding: 12px 16px;
+  border-radius: 25px;
+  font-size: 14px;
+  color: #212529;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  margin-bottom: 8px;
+  background-color: #dee2e6;
+  line-height: 1.5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  word-wrap: break-word;
+  white-space: pre-wrap; /* שמירה על שורות חדשות */
+  align-self: flex-start; /* יישור ברירת מחדל */
+}
+
+/* הודעה שנשלחת על ידי המשתמש */
+.user {
+  background-color: #d1e7dd;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+/* הודעה שהתקבלה (למשל מהצ'אט-בוט) */
+.bot {
+  background-color: #f8f9fa;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.loading-new-chat-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 1;
+}
+
+.loading-message {
+  font-style: italic;
+  opacity: 0.7;
+  animation: fadeInOut 1.2s infinite;
+}
+
+/* אנימציה עדינה */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
