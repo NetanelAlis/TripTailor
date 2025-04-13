@@ -1,0 +1,80 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+.new-chat-container {
+  position: relative;
+  background-color: #c7cace; /* Light background color */
+  min-height: 100vh;
+
+}
+
+.suiteCaseLogo {
+  display: block; 
+  margin: 0 auto -40px; 
+  height: 150px; 
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-start; /* Align buttons to the left */
+  gap: 10px;
+  margin-top: 40px; /* Adjust the space from the navbar */
+  margin-left: 15px; 
+  position: absolute; 
+  z-index: 1; /* Makes sure buttons are on top if needed */
+}
+
+/* Sidebar Button */
+.sidebar-btn,
+.another-btn {
+  background-color: transparent;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar-btn:hover,
+.another-btn:hover {
+  background-color: #90e0ef;
+}
+
+/* Image inside the button */
+.sidebar-btn img,
+.another-btn img {
+  width: 20px; 
+  height: 20px; 
+  object-fit: contain; 
+}
+
+.chat-container {
+  min-height: 100vh;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Centered content */
+.chat-content {
+  text-align: center;
+}
+
+/* Title styling */
+.chat-title {
+  color: #062b55;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
