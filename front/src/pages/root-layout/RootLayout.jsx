@@ -1,9 +1,25 @@
 import styles from './RootLayout.module.css';
-import { Link, Outlet } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 
 export default function RootLayout() {
+    const logoutUrl = `${import.meta.env.VITE_COGNITO_LOGOUT_URL}?client_id=${
+        import.meta.env.VITE_COGNITO_CLIENT_ID
+    }&logout_uri=${import.meta.env.VITE_COGNITO_LOGOUT_REDIRECT_URI}`;
+
+    const rawUserDetails = localStorage.getItem('userDetails');
+    let userDetails = null;
+
+    if (rawUserDetails) {
+        try {
+            userDetails = JSON.parse(rawUserDetails); // Parse only if valid
+        } catch (error) {
+            userDetails = null; // Fallback to null if parsing fails
+        }
+    }
+
     return (
-        <>
+        <div>
             <nav className={styles['navbar']}>
                 <Link to="/" className={styles['navbar-logo']}>
                     <div className={styles['logo']}>
@@ -48,9 +64,16 @@ export default function RootLayout() {
                             Contact
                         </a>
                     </li>
+                    {userDetails && (
+                        <li>
+                            <a href={logoutUrl} className={styles['nav-link']}>
+                                Log Out
+                            </a>
+                        </li>
+                    )}
                 </ul>
             </nav>
             <Outlet />
-        </>
+        </div>
     );
 }

@@ -1,13 +1,27 @@
 import styles from './HomePage.module.css';
 
 export default function HomePage() {
+    const signupUrl = `${import.meta.env.VITE_COGNITO_SIGNUP_URL}?client_id=${
+        import.meta.env.VITE_COGNITO_CLIENT_ID
+    }&response_type=code&scope=email+openid&redirect_uri=${
+        import.meta.env.VITE_COGNITO_REDIRECT_URI
+    }`;
+
+    const loginUrl = `${import.meta.env.VITE_COGNITO_LOGIN_URL}?client_id=${
+        import.meta.env.VITE_COGNITO_CLIENT_ID
+    }&response_type=code&scope=email+openid&redirect_uri=${
+        import.meta.env.VITE_COGNITO_REDIRECT_URI
+    }`;
+
     return (
         <div className={styles['home-page']}>
             <header className={styles['welcome']}>
                 <div className={styles['container']}>
                     <div className={styles['logo-area']}>
                         <img
-                            src="src/assets/images/logo.png"
+                            src={`${
+                                import.meta.env.VITE_ASSETS_BASE_URL
+                            }/logo.png`}
                             alt="TripTailor Logo"
                             className={styles['logo']}
                         />
@@ -16,16 +30,12 @@ export default function HomePage() {
                         Your personalized travel planning assistant.
                     </h1>
                     <div className={styles['auth-buttons']}>
-                        <button
-                            onClick={() => (window.location.href = '/signup')}
-                        >
-                            Sign Up
-                        </button>
-                        <button
-                            onClick={() => (window.location.href = '/signin')}
-                        >
-                            Sign In
-                        </button>
+                        <a href={signupUrl} rel="noopener noreferrer">
+                            <button>Sign Up</button>
+                        </a>
+                        <a href={loginUrl} rel="noopener noreferrer">
+                            <button>Sign In</button>
+                        </a>
                     </div>
                 </div>
             </header>
@@ -59,7 +69,9 @@ export default function HomePage() {
                     <div className={styles['team-members']}>
                         <div className={styles['team-member']}>
                             <img
-                                src="src/assets/images/team1.jpg"
+                                src={`${
+                                    import.meta.env.VITE_ASSETS_BASE_URL
+                                }/team1.jpg`}
                                 alt="Team Member 1"
                                 className={styles['team-photo']}
                             />
@@ -71,7 +83,9 @@ export default function HomePage() {
                         </div>
                         <div className={styles['team-member']}>
                             <img
-                                src="src/assets/images/team2.jpg"
+                                src={`${
+                                    import.meta.env.VITE_ASSETS_BASE_URL
+                                }/team2.jpg`}
                                 alt="Team Member 2"
                                 className={styles['team-photo']}
                             />
@@ -83,7 +97,9 @@ export default function HomePage() {
                         </div>
                         <div className={styles['team-member']}>
                             <img
-                                src="src/assets/images/team3.jpg"
+                                src={`${
+                                    import.meta.env.VITE_ASSETS_BASE_URL
+                                }/team3.jpg`}
                                 alt="Team Member 3"
                                 className={styles['team-photo']}
                             />
