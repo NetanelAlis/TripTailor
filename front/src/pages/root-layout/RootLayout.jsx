@@ -12,9 +12,9 @@ export default function RootLayout() {
 
     if (rawUserDetails) {
         try {
-            userDetails = JSON.parse(rawUserDetails); // Parse only if valid
+            userDetails = JSON.parse(rawUserDetails);
         } catch (error) {
-            userDetails = null; // Fallback to null if parsing fails
+            userDetails = null;
         }
     }
 
@@ -66,7 +66,13 @@ export default function RootLayout() {
                     </li>
                     {userDetails && (
                         <li>
-                            <a href={logoutUrl} className={styles['nav-link']}>
+                            <a
+                                href={logoutUrl}
+                                className={styles['nav-link']}
+                                onClick={() => {
+                                    localStorage.removeItem('userDetails');
+                                }}
+                            >
                                 Log Out
                             </a>
                         </li>

@@ -45,7 +45,7 @@ function Chat() {
                 // Parse the user details
                 const parsedUserDetails = JSON.parse(userDetails);
 
-                // Log the user details for debugging
+                // Log the user ID for debugging
                 console.log('User ID:', parsedUserDetails.sub);
 
                 const response = await fetch('http://localhost:3000/chat', {
