@@ -23,10 +23,7 @@ export default function RootLayout() {
             <nav className={styles['navbar']}>
                 <Link to="/" className={styles['navbar-logo']}>
                     <div className={styles['logo']}>
-                        <img
-                            src="src/assets/images/logo-without-name.png"
-                            alt="TripTailor Logo"
-                        />
+                        <img src="/images/logo.png" alt="TripTailor Logo" />
                         <span className={styles['navbar-website-name']}>
                             Trip Tailor
                         </span>

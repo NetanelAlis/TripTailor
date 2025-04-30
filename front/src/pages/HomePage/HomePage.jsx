@@ -19,9 +19,7 @@ export default function HomePage() {
                 <div className={styles['container']}>
                     <div className={styles['logo-area']}>
                         <img
-                            src={`${
-                                import.meta.env.VITE_ASSETS_BASE_URL
-                            }/logo.png`}
+                            src="/images/logo.png"
                             alt="TripTailor Logo"
                             className={styles['logo']}
                         />
@@ -69,9 +67,7 @@ export default function HomePage() {
                     <div className={styles['team-members']}>
                         <div className={styles['team-member']}>
                             <img
-                                src={`${
-                                    import.meta.env.VITE_ASSETS_BASE_URL
-                                }/team1.jpg`}
+                                src="/images/logo.png"
                                 alt="Team Member 1"
                                 className={styles['team-photo']}
                             />
@@ -83,9 +79,7 @@ export default function HomePage() {
                         </div>
                         <div className={styles['team-member']}>
                             <img
-                                src={`${
-                                    import.meta.env.VITE_ASSETS_BASE_URL
-                                }/team2.jpg`}
+                                src="/images/logo.png"
                                 alt="Team Member 2"
                                 className={styles['team-photo']}
                             />
@@ -97,9 +91,7 @@ export default function HomePage() {
                         </div>
                         <div className={styles['team-member']}>
                             <img
-                                src={`${
-                                    import.meta.env.VITE_ASSETS_BASE_URL
-                                }/team3.jpg`}
+                                src="/images/logo.png"
                                 alt="Team Member 3"
                                 className={styles['team-photo']}
                             />
