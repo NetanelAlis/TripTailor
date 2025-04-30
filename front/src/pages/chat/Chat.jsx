@@ -36,22 +36,38 @@ function Chat() {
             setIsLoading(true);
 
             try {
+                // Retrieve user details from local storage
+                const userDetails = localStorage.getItem('userDetails');
+                if (!userDetails) {
+                    throw new Error('User details not found in local storage');
+                }
+
+                // Parse the user details
+                const parsedUserDetails = JSON.parse(userDetails);
+
+                // Log the user details for debugging
+                console.log('User ID:', parsedUserDetails.sub);
+
                 const response = await fetch('http://localhost:3000/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message: userMessage }),
+                    body: JSON.stringify({
+                        message: userMessage,
+                        userID: parsedUserDetails.sub,
+                    }),
                 });
 
                 const data = await response.json();
-                console.log(data.message);
+                console.log('Server Response:', data.message);
 
                 addNewMessage(data.message, 'bot');
                 setIsLoading(false);
             } catch (error) {
                 setIsLoading(false);
                 setErrors((prevErrors) => [...prevErrors, error.message]);
+                console.error('Error:', error);
             }
         },
         [addNewMessage]
@@ -82,7 +98,8 @@ function Chat() {
                         <li
                             className={`${styles['message']} ${styles['bot']} ${styles['loading-message']}`}
                         >
-                            ⏳ המטוס ממריא...<p>ההודעה בדרך אליך</p>
+                            ⏳ Ready for Takeoff...
+                            <p>The message is on its way</p>
                         </li>
                     )}
                     <div ref={bottomRef}></div>
