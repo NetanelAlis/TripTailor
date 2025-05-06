@@ -21,14 +21,11 @@
 .navbar-website-name {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #062c56; /* Vibrant blue accent */
+  color: #062c56;
 }
 
 .navbar-logo {
   text-decoration: none;
-  /* width: 50px;
-  height: auto;
-  margin-right: 10px; */
 }
 
 .navbar img {
