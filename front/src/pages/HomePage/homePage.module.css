@@ -33,8 +33,7 @@ body {
     justify-content: center; /* Centers content vertically */
     align-items: center; /* Centers content horizontally */
     text-align: center;
-    background: url('src/assets/images/welcome-bg.jpg') no-repeat center
-        center/cover; /* Background image */
+    background: url('/images/welcome-bg.jpg') no-repeat center center/cover; /* Background image */
     color: #fff;
     box-shadow: 0 20px 20px rgba(0, 0, 0, 0.5); /* Adds shadow for floating effect */
 }
@@ -98,8 +97,7 @@ body {
 /* About Section */
 .about {
     padding: 100px 20px;
-    background: url('src/assets/images/about-bg.jpg') no-repeat center
-        center/cover; /* Background image */
+    background: url('/images/about-bg.jpg') no-repeat center center/cover; /* Background image */
     color: #333;
     text-align: center;
     cursor: default; /* Default cursor for the paragraph */
@@ -127,7 +125,7 @@ body {
 /* About the Team Section */
 .team {
     padding: 130px 20px;
-    background: url('src/assets/images/meet-the-team-bg.jpg') no-repeat center
+    background: url('/images/meet-the-team-bg.jpg') no-repeat center
         center/cover; /* Background image */
     color: #333;
     text-align: center;
