@@ -32,23 +32,9 @@ function Chat() {
             setIsLoading(true);
 
             try {
-                // Retrieve user details from local storage
-                // const userDetails = localStorage.getItem('userDetails');
-                // if (!userDetails) {
-                //     throw new Error('User details not found in local storage');
-                // }
-
-                // Parse the user details
-                // const parsedUserDetails = JSON.parse(userDetails);
-
-                // Log the user ID for debugging
-                // console.log('User ID:', parsedUserDetails.sub);
-
                 const response = await sendMessageToChatbot(userMessage);
                 const chatAnswer = response.ai_reply;
-
-                const data = await response.json();
-                console.log(data.message);
+                console.log(chatAnswer);
 
                 addNewMessage(chatAnswer, 'bot');
                 setIsLoading(false);
