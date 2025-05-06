@@ -8,14 +8,9 @@ function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState('');
   const location = useLocation();
-  const userInput = location.state?.userInput || {};
-  const [messages, setMessages] = useState([
-    {
-      sender: 'user',
-      text: '' + userInput,
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const bottomRef = useRef(null);
+  const firstMessageSentRef = useRef(false);
 
   const addNewMessage = useCallback((userMessage, sender = 'user') => {
     setMessages((prevMessage) => {
@@ -48,6 +43,14 @@ function Chat() {
     },
     [addNewMessage]
   );
+  useEffect(() => {
+    const firstUserMessage = location.state?.userInput;
+
+    if (firstUserMessage && !firstMessageSentRef.current) {
+      handleSendMessage(firstUserMessage);
+      firstMessageSentRef.current = true;
+    }
+  }, [handleSendMessage, location.state]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -75,7 +78,7 @@ function Chat() {
               <p>שגיאה: {errors}</p>
             </li>
           )}
-          {/* Scroll to the bottom of the chat */}
+
           <div ref={bottomRef}></div>
         </ul>
       )}
