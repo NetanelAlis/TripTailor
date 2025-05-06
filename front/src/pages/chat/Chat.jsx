@@ -37,16 +37,16 @@ function Chat() {
 
             try {
                 // Retrieve user details from local storage
-                const userDetails = localStorage.getItem('userDetails');
-                if (!userDetails) {
-                    throw new Error('User details not found in local storage');
-                }
+                // const userDetails = localStorage.getItem('userDetails');
+                // if (!userDetails) {
+                //     throw new Error('User details not found in local storage');
+                // }
 
                 // Parse the user details
-                const parsedUserDetails = JSON.parse(userDetails);
+                // const parsedUserDetails = JSON.parse(userDetails);
 
                 // Log the user ID for debugging
-                console.log('User ID:', parsedUserDetails.sub);
+                // console.log('User ID:', parsedUserDetails.sub);
 
                 const response = await fetch('http://localhost:3000/chat', {
                     method: 'POST',
@@ -55,7 +55,7 @@ function Chat() {
                     },
                     body: JSON.stringify({
                         message: userMessage,
-                        userID: parsedUserDetails.sub,
+                        // userID: parsedUserDetails.sub,
                     }),
                 });
 
