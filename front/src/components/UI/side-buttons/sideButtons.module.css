@@ -1,0 +1,32 @@
+.sidebar-btn,
+.new-chat-btn {
+    background-color: transparent;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-btn:hover,
+.new-chat-btn:hover {
+    background-color: #0f8bd245;
+}
+
+/* Image inside the button */
+.sidebar-btn img,
+.new-chat-btn img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 80px;
+    margin-left: 20px;
+    position: absolute;
+    z-index: 1;
+}

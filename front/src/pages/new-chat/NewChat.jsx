@@ -99,15 +99,6 @@ function NewChat() {
     return (
         <>
             <div className={styles['new-chat-container']}>
-                <div className={styles['button-container']}>
-                    <button className={styles['sidebar-btn']}>
-                        <img src="/images/sidebar.png" alt="Open Sidebar" />
-                    </button>
-                    <button className={styles['new-chat-btn']}>
-                        <img src="/images/new-chat.png" alt="New chat" />
-                    </button>
-                </div>
-
                 <div className={styles['chat-container']}>
                     <div className={styles['chat-content']}>
                         <img
