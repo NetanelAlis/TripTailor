@@ -47,9 +47,9 @@ export default function NavBar({ userDetails, setUserDetails }) {
                     </a>
                 </li>
                 <li>
-                    <a href="#" className={styles['nav-link']}>
+                    <Link to="/#contact" className={styles['nav-link']}>
                         Contact
-                    </a>
+                    </Link>
                 </li>
                 {userDetails && (
                     <li>

@@ -1,4 +1,6 @@
 import styles from './HomePage.module.css';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 export default function HomePage() {
     const signupUrl = `${import.meta.env.VITE_COGNITO_SIGNUP_URL}?client_id=${
@@ -13,9 +15,24 @@ export default function HomePage() {
         import.meta.env.VITE_COGNITO_REDIRECT_URI
     }`;
 
+    const location = useLocation();
+    useEffect(() => {
+        if (location.hash === '#contact') {
+            const element = document.getElementById('meet-the-team');
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        } else if (location.hash === '') {
+            const element = document.getElementById('welcome');
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }, [location]);
+
     return (
         <div className={styles['home-page']}>
-            <header className={styles['welcome']}>
+            <header id="welcome" className={styles['welcome']}>
                 <div className={styles['container']}>
                     <div className={styles['logo-area']}>
                         <img
@@ -61,7 +78,7 @@ export default function HomePage() {
 
             <section className={styles['separator']}></section>
 
-            <section id="team" className={styles['team']}>
+            <section id="meet-the-team" className={styles['team']}>
                 <div className={styles['container']}>
                     <h2>Meet the Team</h2>
                     <div className={styles['team-members']}>
