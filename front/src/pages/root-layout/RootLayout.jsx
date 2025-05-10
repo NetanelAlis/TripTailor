@@ -46,7 +46,7 @@ export default function RootLayout() {
                     <div className={styles['top-section']}>
                         <NavBar
                             userDetails={userDetails}
-                            setUserDetails={setUserDetails}
+                            pathname={location.pathname}
                         />
                     </div>
 

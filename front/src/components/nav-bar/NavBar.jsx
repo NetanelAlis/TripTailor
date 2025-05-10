@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import styles from './navBar.module.css';
 import SideButtons from '../side-buttons/SideButtons';
 
-export default function NavBar({ userDetails, setUserDetails }) {
+export default function NavBar({ userDetails, pathname }) {
+    const isHome = pathname === '/';
     const logoutUrl = `${import.meta.env.VITE_COGNITO_LOGOUT_URL}?client_id=${
         import.meta.env.VITE_COGNITO_CLIENT_ID
     }&logout_uri=${import.meta.env.VITE_COGNITO_LOGOUT_REDIRECT_URI}`;
@@ -14,7 +15,7 @@ export default function NavBar({ userDetails, setUserDetails }) {
     }`;
 
     return (
-        <nav className={styles['navbar']}>
+        <nav className={!isHome ? styles['navbar'] : styles['navbar-home']}>
             <ul className={styles['navbar-left']}>
                 <li className={styles['navbar-left-item']}>
                     <div className={styles['navbar-left-group']}>
@@ -24,6 +25,7 @@ export default function NavBar({ userDetails, setUserDetails }) {
                                 <img
                                     src="/images/logo-without-name.png"
                                     alt="TripTailor Logo"
+                                    className={styles['logo-image']}
                                 />
                                 <span className={styles['navbar-website-name']}>
                                     Trip Tailor

@@ -6,16 +6,17 @@ import SideBarMenu from './sidebarMenu';
 const buttonStyle = {
     position: 'fixed',
     zIndex: 2,
-    top: 100,
-    borderRadius: '50%',
+    top: 70,
+    borderRadius: '8px',
     minWidth: 0,
     width: 48,
     height: 48,
-    backgroundColor: '#dee2e6',
+    backgroundColor: 'rgba(237, 242, 255, 0.5)',
     boxShadow: 'none',
     padding: 0,
     '&:hover': {
-        backgroundColor: '#f1f3f5',
+        color: '#062c56',
+        backgroundColor: '#0f8bd245',
     },
     '&:focus': {
         outline: 'none',
@@ -49,11 +50,10 @@ export default function SideBar({ open, setOpen }) {
             <Drawer
                 sx={{
                     '& .MuiDrawer-paper': {
-                        top: 16,
                         zIndex: 1,
                     },
                 }}
-                anchor="right"
+                anchor="left"
                 open={open}
                 onClose={() => setOpen(false)}
                 variant="persistent"

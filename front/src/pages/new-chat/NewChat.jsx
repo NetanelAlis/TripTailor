@@ -107,7 +107,7 @@ function NewChat() {
                             className={styles['logo']}
                         />
                         <h1 className={styles['chat-title']}>
-                            Let's plan your next vacation
+                            Let's Plan Your Next Vacation
                         </h1>
                         <ChatTextBox />
                     </div>

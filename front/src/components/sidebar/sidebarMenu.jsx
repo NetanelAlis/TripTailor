@@ -1,205 +1,128 @@
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import AltRouteIcon from '@mui/icons-material/AltRoute';
-import PublicIcon from '@mui/icons-material/Public';
-import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
-import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import GroupAddIcon from '@mui/icons-material/GroupAdd';
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Box, List, ListItem, Typography, Collapse } from '@mui/material';
+import { Box, List, ListItem, Typography } from '@mui/material';
 import { useState } from 'react';
 
-export default function SideBarMenu({ handleOpen }) {
-    const [active, setActive] = useState(0);
-    const [expanded, setExpanded] = useState(null);
+export default function SideBarMenu({ onSelectChat = () => {} }) {
+    const [activeChat, setActiveChat] = useState(null);
 
-    const menuItemsData = [
+    const sampleChats = [
         {
-            text: 'נסיעות',
-            icon: <DepartureBoardIcon fontSize="large" />,
+            id: 1,
+            title: 'Trip to Rome',
+            preview: 'Check out the recommended spots for Day 2...',
         },
         {
-            text: 'סידור עבודה יומי',
-            icon: <CalendarTodayIcon fontSize="large" />,
-            subMenu: [
-                {
-                    text: 'שיבוץ נהגים אוטומטי',
-                    icon: <GroupAddIcon fontSize="large" />,
-                },
-                {
-                    text: 'החלפת רכב ברכב',
-                    icon: <DirectionsCarIcon fontSize="large" />,
-                },
-                {
-                    text: 'החלפת ראש בראש',
-                    icon: <SwapHorizIcon fontSize="large" />,
-                },
-            ],
+            id: 2,
+            title: 'Customer Support',
+            preview: 'Welcome! How can I help you today?',
         },
         {
-            text: 'תובלה',
-            icon: <LocalShippingIcon fontSize="large" />,
-            subMenu: [
-                { text: 'משלוח רגיל' },
-                { text: 'משלוח מהיר' },
-                { text: 'משלוח מטען כבד' },
-                { text: 'משלוח חירום' },
-                { text: 'מעקב משלוחים' },
-            ],
+            id: 3,
+            title: 'Grocery List for Thanksgiving',
+            preview: 'Don’t forget the cranberry sauce...',
         },
         {
-            text: 'בניית מסלולים',
-            icon: <AltRouteIcon fontSize="large" />,
+            id: 4,
+            title: 'Capstone Project Ideas',
+            preview: 'Maybe we could build a trip planner app...',
         },
         {
-            text: 'גיאוגרפיה',
-            icon: <PublicIcon fontSize="large" />,
+            id: 5,
+            title: 'Weekly Driver Schedule',
+            preview: 'Night shift drivers have been added...',
         },
     ];
 
     return (
         <Box
             sx={{
-                width: 240,
-                direction: 'rtl',
+                marginTop: '75px',
+                width: 285,
                 height: '100vh',
-                backgroundColor: '#e9ecef',
+                backgroundColor: '#d0ebff',
+                color: '#FFFFFF',
                 p: 2,
+                display: 'flex',
+                flexDirection: 'column',
                 overflowY: 'auto',
+                borderRight: '2px solid #a5d8ff',
             }}
-            role="presentation"
         >
             <Box
                 sx={{
-                    mb: 1,
-                    px: 2,
-                    py: 1,
-                    fontWeight: 'bold',
-                    fontSize: 18,
-                    color: '#343a40',
-                    width: '100%',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 317,
+                    height: '75px',
+                    backgroundColor: '#d0ebff',
+                    zIndex: 1,
+                    borderRight: '2px solid #a5d8ff',
+                }}
+            ></Box>
+
+            {/* Header */}
+            <Typography
+                variant="h6"
+                sx={{
+                    mb: 2,
+                    fontWeight: '700',
                     fontFamily: 'Rubik, sans-serif',
-                    borderBottom: '1px solid #ced4da',
+                    color: '#062c56',
+                    cursor: 'default',
                 }}
             >
-                פעולות נוספות
-            </Box>
+                My Chats
+            </Typography>
+
+            {/* Chat List */}
             <List sx={{ p: 0 }}>
-                {menuItemsData.map((item, index) => (
-                    <Box key={item.text}>
-                        <ListItem
-                            button
-                            onClick={() => {
-                                setActive(index);
-                                if (item.subMenu) {
-                                    setExpanded(
-                                        expanded === index ? null : index
-                                    );
-                                } else {
-                                    handleOpen(false);
-                                    setExpanded(null);
-                                }
-                            }}
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                paddingY: 1,
-                                paddingX: 2,
-                                backgroundColor:
-                                    active === index
-                                        ? '#dbe4ff'
-                                        : 'transparent',
-                                borderRadius: 2,
-                                cursor: 'pointer',
-                                color: '#343a40',
-                                '&:hover': {
-                                    backgroundColor: '#edf2ff',
-                                },
-                            }}
-                        >
-                            <Box
+                {sampleChats.map((chat) => (
+                    <ListItem
+                        key={chat.id}
+                        onClick={() => {
+                            setActiveChat(chat.id);
+                            onSelectChat(chat);
+                        }}
+                        sx={{
+                            py: 1,
+                            px: 2,
+                            borderRadius: 2,
+                            mb: 0.5,
+                            backgroundColor:
+                                activeChat === chat.id
+                                    ? '#0f8bd245'
+                                    : 'transparent',
+                            cursor: 'pointer',
+                            transition: 'background 0.3s',
+                            '&:hover': {
+                                backgroundColor: '#0f8bd245',
+                            },
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography
                                 sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1,
+                                    fontSize: 14,
+                                    color: '#062c56',
+                                    fontWeight: 500,
                                 }}
                             >
-                                {item.icon}
-                                <Typography
-                                    sx={{
-                                        fontSize: 14,
-                                        fontWeight: '500',
-                                        color: '#495057',
-                                        fontFamily: 'Rubik, sans-serif',
-                                        marginRight: 0.3,
-                                    }}
-                                >
-                                    {item.text}
-                                </Typography>
-                            </Box>
-
-                            {item.subMenu && (
-                                <>
-                                    {expanded === index ? (
-                                        <ExpandLessIcon fontSize="small" />
-                                    ) : (
-                                        <ExpandMoreIcon fontSize="small" />
-                                    )}
-                                </>
-                            )}
-                        </ListItem>
-                        {item.subMenu && (
-                            <Collapse
-                                in={expanded === index}
-                                timeout="auto"
-                                unmountOnExit
+                                {chat.title}
+                            </Typography>
+                            <Typography
+                                sx={{
+                                    fontSize: 12,
+                                    color: '#034d8a',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    maxWidth: '250px',
+                                }}
                             >
-                                <List component="div" disablePadding>
-                                    {item.subMenu.map((subItem) => (
-                                        <ListItem
-                                            key={subItem.text}
-                                            onClick={() => {
-                                                handleOpen(false);
-                                                setExpanded(null);
-                                                setActive(index);
-                                            }}
-                                            sx={{
-                                                pl: 6,
-                                                py: 0.7,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 1,
-                                                color: '#495057',
-                                                fontSize: 14,
-                                                cursor: 'pointer',
-                                                '&:hover': {
-                                                    backgroundColor: '#f1f3f5',
-                                                },
-                                            }}
-                                        >
-                                            {subItem.icon && subItem.icon}
-                                            <Typography
-                                                sx={{
-                                                    marginRight: 1,
-                                                    fontSize: 14,
-                                                    fontWeight: '500',
-                                                    color: '#495057',
-                                                    fontFamily:
-                                                        'Rubik, sans-serif',
-                                                    textWrap: 'nowrap',
-                                                }}
-                                            >
-                                                {subItem.text}
-                                            </Typography>
-                                        </ListItem>
-                                    ))}
-                                </List>
-                            </Collapse>
-                        )}
-                    </Box>
+                                {chat.preview}
+                            </Typography>
+                        </Box>
+                    </ListItem>
                 ))}
             </List>
         </Box>

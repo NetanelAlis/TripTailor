@@ -87,11 +87,11 @@
 }
 
 .side-bar-open {
-    margin-right: 186px;
-    transition: margin-right 0.3s ease;
+    margin-left: 186px;
+    transition: margin-left 0.3s ease;
 }
 
 .side-bar-closed {
     margin-right: 0;
-    transition: margin-right 0.3s ease;
+    transition: margin-left 0.3s ease;
 }

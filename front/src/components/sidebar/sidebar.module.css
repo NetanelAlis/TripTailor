@@ -1,4 +1,4 @@
-.sidebar {
+/* .sidebar {
     height: 100vh;
     background-color: #edf2ff;
     transition: width 0.3s ease;
@@ -6,11 +6,11 @@
 }
 
 .sidebarOpen {
-    width: 16rem; /* 256px */
+    width: 16rem; /* 256px *
 }
 
 .sidebarClosed {
-    width: 2rem; /* 64px */
+    width: 2rem; /* 64px *
 }
 
 .topBar {
@@ -49,4 +49,4 @@
 .content {
     flex: 1;
     padding: 1rem;
-}
+} */
