@@ -47,6 +47,8 @@ export default function RootLayout() {
                         <NavBar
                             userDetails={userDetails}
                             pathname={location.pathname}
+                            sideBarOpen={sideBarOpen}
+                            setSideBarOpen={setSideBarOpen}
                         />
                     </div>
 

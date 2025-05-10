@@ -1,6 +1,7 @@
-import styles from './sideButtons.module.css';
+import styles from './newChatButton.module.css';
+import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 
-export default function SideButtons() {
+export default function NewChatButton() {
     const loginUrl = `${import.meta.env.VITE_COGNITO_LOGIN_URL}?client_id=${
         import.meta.env.VITE_COGNITO_CLIENT_ID
     }&response_type=code&scope=email+openid&redirect_uri=${
@@ -21,15 +22,13 @@ export default function SideButtons() {
 
     return (
         <div className={styles['button-container']}>
-            <button className={styles['sidebar-btn']}>
-                <img src="/images/sidebar.png" alt="Open Sidebar" />
-            </button>
-
             <button
                 className={styles['new-chat-btn']}
                 onClick={handleNewChatClick}
             >
-                <img src="/images/new-chat.png" alt="New chat" />
+                <AddCircleOutlineRoundedIcon
+                    sx={{ color: '#062c56', fontSize: 28 }}
+                />
             </button>
         </div>
     );
