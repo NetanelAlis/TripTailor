@@ -1,0 +1,52 @@
+.sidebar {
+    height: 100vh;
+    background-color: #edf2ff;
+    transition: width 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebarOpen {
+    width: 16rem; /* 256px */
+}
+
+.sidebarClosed {
+    width: 2rem; /* 64px */
+}
+
+.topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+}
+
+.toggleButton {
+    background: none;
+    border: none;
+    color: #062c56;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+}
+
+.navLink {
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    color: #062c56;
+}
+
+.navLink:hover {
+    background-color: #374151;
+}
+
+.content {
+    flex: 1;
+    padding: 1rem;
+}

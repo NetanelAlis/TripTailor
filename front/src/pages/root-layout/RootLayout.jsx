@@ -1,26 +1,65 @@
 import { Outlet } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import styles from './rootLayout.module.css';
-import NavBar from '../../components/UI/nav-bar/NavBar';
-import SideButtons from '../../components/UI/side-buttons/SideButtons';
+import NavBar from '../../components/nav-bar/NavBar';
+import Sidebar from '../../components/sidebar/Sidebar';
 
 export default function RootLayout() {
-    const rawUserDetails = localStorage.getItem('userDetails');
-    const [userDetails, setUserDetails] = useState(rawUserDetails);
+    const location = useLocation();
+    let parsedUserDetails = null;
+
+    try {
+        const rawUserDetails = localStorage.getItem('userDetails');
+        if (rawUserDetails && rawUserDetails !== 'undefined') {
+            parsedUserDetails = JSON.parse(rawUserDetails);
+        }
+    } catch (e) {
+        console.error('Failed to parse userDetails from localStorage:', e);
+    }
+
+    const [userDetails, setUserDetails] = useState(parsedUserDetails);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const isLoggedOut = params.get('loggedOut') === 'true';
+
+        if (isLoggedOut) {
+            localStorage.removeItem('userDetails');
+            setUserDetails(false);
+        }
+    }, [location.search]);
+
+    const [sideBarOpen, setSideBarOpen] = useState(false);
 
     return (
-        <div>
-            <div className={styles['top-section']}>
-                <NavBar
-                    userDetails={userDetails}
-                    setUserDetails={setUserDetails}
-                />
-                <SideButtons
-                    userDetails={userDetails}
-                    setUserDetails={setUserDetails}
-                />
+        <div className={styles.layout}>
+            <div className={styles.main}>
+                <Sidebar open={sideBarOpen} setOpen={setSideBarOpen} />
+                <main
+                    className={
+                        sideBarOpen
+                            ? styles['side-bar-open']
+                            : styles['side-bar-closed']
+                    }
+                >
+                    <div className={styles['top-section']}>
+                        <NavBar
+                            userDetails={userDetails}
+                            setUserDetails={setUserDetails}
+                        />
+                    </div>
+
+                    <div className={styles.content}>
+                        <Outlet
+                            context={{
+                                handleLogIn: (details) =>
+                                    setUserDetails(details),
+                            }}
+                        />
+                    </div>
+                </main>
             </div>
-            <Outlet context={{ handleLogIn: () => setUserDetails(true) }} />
         </div>
     );
 }

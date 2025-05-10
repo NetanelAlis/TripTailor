@@ -89,7 +89,7 @@ function NewChat() {
                     JSON.stringify(userDetails)
                 );
 
-                handleLogIn();
+                handleLogIn(userDetails);
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -115,17 +115,6 @@ function NewChat() {
             </div>
         </>
     );
-
-    //   return (
-    //     <>
-    //       <div className="chat-container">
-    //         <div className="chat-content">
-    //           <h1 className="chat-title">Let's plan your next vacation</h1>
-    //           <ChatTextBox />
-    //         </div>
-    //       </div>
-    //     </>
-    //   );
 }
 
 export default NewChat;

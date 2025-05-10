@@ -27,6 +27,11 @@ export default function HomePage() {
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth' });
             }
+        } else if (location.hash === '#about') {
+            const element = document.getElementById('about');
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
         }
     }, [location]);
 
