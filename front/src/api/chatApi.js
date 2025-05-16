@@ -13,12 +13,9 @@ export async function sendMessageToChatbot(message) {
     // Log the user ID for debugging
     console.log('User ID:', parsedUserDetails.sub);
 
-    const response = await axios.post(
-        'https://qxtrwenfisgn3gebs4c2tuv6qq0ifthy.lambda-url.us-east-1.on.aws/',
-        {
-            user_prompt: message,
-            user_id: parsedUserDetails.sub,
-        }
-    );
+    const response = await axios.post(import.meta.env.VITE_CHAT_LAMBDA_URL, {
+        user_prompt: message,
+        user_id: parsedUserDetails.sub,
+    });
     return response.data;
 }
