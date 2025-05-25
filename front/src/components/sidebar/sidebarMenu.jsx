@@ -1,10 +1,6 @@
 import { Box, List, ListItem, Typography } from '@mui/material';
 
-export default function SideBarMenu({
-  onSelectChat = () => {},
-  activeChat,
-  setActiveChat,
-}) {
+export default function SideBarMenu({ onSelectChat = () => {}, activeChat }) {
   const sampleChats = [
     {
       id: 1,
@@ -32,8 +28,6 @@ export default function SideBarMenu({
       preview: 'Night shift drivers have been added...',
     },
   ];
-
-  
 
   return (
     <Box
@@ -83,8 +77,7 @@ export default function SideBarMenu({
           <ListItem
             key={chat.id}
             onClick={() => {
-              setActiveChat(chat.id);
-              onSelectChat(chat);
+              onSelectChat(chat.id);
             }}
             sx={{
               py: 1,

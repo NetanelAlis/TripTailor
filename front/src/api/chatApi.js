@@ -19,7 +19,7 @@ export async function sendMessageToChatbot(message, activeChatId) {
   const response = await axios.post(import.meta.env.VITE_CHAT_LAMBDA_URL, {
     user_prompt: message,
     user_id: userId,
-    chat_id: activeChatId,
+    chat_id: activeChatId + '',
   });
 
   return response.data;
@@ -27,16 +27,12 @@ export async function sendMessageToChatbot(message, activeChatId) {
 
 export async function fetchChatMessages(chatId) {
   const userId = getUserId();
+  console.log(chatId);
   const response = await axios.post(
     import.meta.env.VITE_SET_EXISTING_CHAT_AS_ACTIVE_CHAT_LAMBDA_URL,
     {
-      chat_id: chatId,
+      chat_id: chatId + '',
       user_id: userId,
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
     }
   );
   return response.data;

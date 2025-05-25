@@ -8,7 +8,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 export default function RootLayout() {
   const location = useLocation();
   let parsedUserDetails = null;
-  const [activeChat, setActiveChat] = useState(1);
+  const [activeChat, setActiveChat] = useState(2);
 
   try {
     const rawUserDetails = localStorage.getItem('userDetails');
@@ -60,8 +60,8 @@ export default function RootLayout() {
             <Outlet
               context={{
                 handleLogIn: (details) => setUserDetails(details),
+                activeChat,
               }}
-              activeChat={activeChat}
             />
           </div>
         </main>

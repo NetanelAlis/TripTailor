@@ -16,12 +16,11 @@ export default function SideBar({ open, setOpen, activeChat, setActiveChat }) {
         variant="persistent"
       >
         <SideBarMenu
-          handleOpen={(open, chat) => {
-            setOpen(open);
-            setActiveChat(chat);
+          onSelectChat={(chatId) => {
+            // setOpen(open);
+            setActiveChat(chatId);
           }}
           activeChat={activeChat}
-          setActiveChat={setActiveChat}
         />
       </Drawer>
     </div>

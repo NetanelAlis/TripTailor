@@ -46,7 +46,7 @@ function Chat() {
         setErrors(error.message);
       }
     },
-    [addNewMessage]
+    [addNewMessage, activeChat]
   );
   useEffect(() => {
     const firstUserMessage = location.state?.userInput;
@@ -67,12 +67,11 @@ function Chat() {
       setMessages([]);
       try {
         const res = await fetchChatMessages(chatId);
-        const chatMessages = res.data.chat_messages;
+        const chatMessages = res.chat_messages;
         const updatedMessages = chatMessages.map((message) => ({
           sender: message.role,
           text: message.content,
         }));
-
         setMessages(updatedMessages);
         setIsLoading(false);
       } catch (error) {
