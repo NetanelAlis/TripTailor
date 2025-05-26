@@ -3,94 +3,123 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { sendMessageToChatbot } from '../../api/chatApi';
 import styles from './chat.module.css';
+import { useOutletContext } from 'react-router-dom';
+import { fetchChatMessages } from '../../api/chatApi';
 
 function Chat() {
-    const [isLoading, setIsLoading] = useState(false);
-    const [errors, setErrors] = useState('');
-    const location = useLocation();
-    const [messages, setMessages] = useState([]);
-    const bottomRef = useRef(null);
-    const firstMessageSentRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState('');
+  const location = useLocation();
+  const [messages, setMessages] = useState([]);
+  const bottomRef = useRef(null);
+  const firstMessageSentRef = useRef(false);
+  const { activeChat } = useOutletContext();
 
-    const addNewMessage = useCallback((userMessage, sender = 'user') => {
-        setMessages((prevMessage) => {
-            const updatedMessage = [
-                ...prevMessage,
-                {
-                    sender: sender,
-                    text: userMessage,
-                },
-            ];
-
-            return updatedMessage;
-        });
-    }, []);
-
-    const handleSendMessage = useCallback(
-        async (userMessage) => {
-            addNewMessage(userMessage, 'user');
-            setIsLoading(true);
-
-            try {
-                const response = await sendMessageToChatbot(userMessage);
-                const chatAnswer = response.ai_reply;
-                console.log(chatAnswer);
-
-                addNewMessage(chatAnswer, 'bot');
-                setIsLoading(false);
-            } catch (error) {
-                setIsLoading(false);
-                setErrors(error.message);
-            }
+  const addNewMessage = useCallback((userMessage, sender = 'user') => {
+    setMessages((prevMessage) => {
+      const updatedMessage = [
+        ...prevMessage,
+        {
+          sender: sender,
+          text: userMessage,
         },
-        [addNewMessage]
-    );
-    useEffect(() => {
-        const firstUserMessage = location.state?.userInput;
+      ];
 
-        if (firstUserMessage && !firstMessageSentRef.current) {
-            handleSendMessage(firstUserMessage);
-            firstMessageSentRef.current = true;
-        }
-    }, [handleSendMessage, location.state]);
+      return updatedMessage;
+    });
+  }, []);
 
-    useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+  const handleSendMessage = useCallback(
+    async (userMessage) => {
+      addNewMessage(userMessage, 'user');
+      setIsLoading(true);
 
-    return (
-        <div className={styles['chat-container-chat-page']}>
-            {messages.length > 0 && (
-                <ul className={styles['messages-list']}>
-                    {messages.map((message, index) => {
-                        const listItem = (
-                            <li
-                                key={index}
-                                className={`${styles['message']} ${
-                                    styles[message.sender]
-                                }`}
-                            >
-                                {message.text}
-                            </li>
-                        );
-                        return listItem;
-                    })}
-                    {isLoading && (
-                        <li
-                            className={`${styles['message']} ${styles['bot']} ${styles['loading-message']}`}
-                        >
-                            ⏳ Ready for Takeoff...
-                            <p>The message is on its way</p>
-                        </li>
-                    )}
-                    <div ref={bottomRef}></div>
-                </ul>
-            )}
-            <div className={styles['chat-text-box-container']}>
-                <ChatTextBox onSendMessage={handleSendMessage} />
-            </div>
-        </div>
-    );
+      try {
+        console.log(activeChat);
+        const response = await sendMessageToChatbot(userMessage, activeChat);
+        const chatAnswer = response.ai_reply;
+
+        addNewMessage(chatAnswer, 'bot');
+        setIsLoading(false);
+      } catch (error) {
+        setIsLoading(false);
+        setErrors(error.message);
+      }
+    },
+    [addNewMessage, activeChat]
+  );
+  useEffect(() => {
+    const firstUserMessage = location.state?.userInput;
+    const newChatClicked = location.state?.newChatClicked;
+
+    if ((firstUserMessage && !firstMessageSentRef.current) || newChatClicked) {
+      handleSendMessage(firstUserMessage);
+      firstMessageSentRef.current = true;
+    }
+  }, [
+    handleSendMessage,
+    location.state?.userInput,
+    location.state?.newChatClicked,
+  ]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    async function updateActiveChatMessages(chatId) {
+      setIsLoading(true);
+      setMessages([]);
+      try {
+        const res = await fetchChatMessages(chatId);
+        const chatMessages = res.chat_messages;
+        const updatedMessages = chatMessages.map((message) => ({
+          sender: message.role,
+          text: message.content,
+        }));
+        setMessages(updatedMessages);
+        setIsLoading(false);
+      } catch (error) {
+        setErrors(error.message || 'Failed to fetch chat messages');
+        setIsLoading(false);
+      }
+    }
+    if (activeChat) {
+      updateActiveChatMessages(activeChat);
+    }
+  }, [activeChat]);
+
+  return (
+    <div className={styles['chat-container-chat-page']}>
+      {messages.length > 0 && (
+        <ul className={styles['messages-list']}>
+          {messages.map((message, index) => {
+            const listItem = (
+              <li
+                key={index}
+                className={`${styles['message']} ${styles[message.sender]}`}
+              >
+                {message.text}
+              </li>
+            );
+            return listItem;
+          })}
+          {isLoading && (
+            <li
+              className={`${styles['message']} ${styles['bot']} ${styles['loading-message']}`}
+            >
+              ⏳ Ready for Takeoff...
+              <p>The message is on its way</p>
+            </li>
+          )}
+          <div ref={bottomRef}></div>
+        </ul>
+      )}
+      <div className={styles['chat-text-box-container']}>
+        <ChatTextBox onSendMessage={handleSendMessage} />
+      </div>
+    </div>
+  );
 }
 
 export default Chat;
