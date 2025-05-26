@@ -35,9 +35,9 @@ function Chat() {
       setIsLoading(true);
 
       try {
+        console.log(activeChat);
         const response = await sendMessageToChatbot(userMessage, activeChat);
         const chatAnswer = response.ai_reply;
-        console.log(chatAnswer);
 
         addNewMessage(chatAnswer, 'bot');
         setIsLoading(false);
@@ -50,12 +50,17 @@ function Chat() {
   );
   useEffect(() => {
     const firstUserMessage = location.state?.userInput;
+    const newChatClicked = location.state?.newChatClicked;
 
-    if (firstUserMessage && !firstMessageSentRef.current) {
+    if ((firstUserMessage && !firstMessageSentRef.current) || newChatClicked) {
       handleSendMessage(firstUserMessage);
       firstMessageSentRef.current = true;
     }
-  }, [handleSendMessage, location.state]);
+  }, [
+    handleSendMessage,
+    location.state?.userInput,
+    location.state?.newChatClicked,
+  ]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

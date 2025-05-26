@@ -1,33 +1,20 @@
 import { Box, List, ListItem, Typography } from '@mui/material';
 
-export default function SideBarMenu({ onSelectChat = () => {}, activeChat }) {
-  const sampleChats = [
-    {
-      id: 1,
-      title: 'Trip to Rome',
-      preview: 'Check out the recommended spots for Day 2...',
-    },
-    {
-      id: 2,
-      title: 'Customer Support',
-      preview: 'Welcome! How can I help you today?',
-    },
-    {
-      id: 3,
-      title: 'Grocery List for Thanksgiving',
-      preview: 'Don’t forget the cranberry sauce...',
-    },
-    {
-      id: 4,
-      title: 'Capstone Project Ideas',
-      preview: 'Maybe we could build a trip planner app...',
-    },
-    {
-      id: 5,
-      title: 'Weekly Driver Schedule',
-      preview: 'Night shift drivers have been added...',
-    },
-  ];
+export default function SideBarMenu({
+  onSelectChat = () => {},
+  activeChat,
+  numberOfChats,
+}) {
+  const chats = [];
+  chats[0] = 0;
+
+  // set the user's chats dynamically
+  for (let i = 0; i < numberOfChats; i++) {
+    chats.push({
+      id: i + 1,
+      title: 'vacation ' + (i + 1),
+    });
+  }
 
   return (
     <Box
@@ -73,51 +60,45 @@ export default function SideBarMenu({ onSelectChat = () => {}, activeChat }) {
 
       {/* Chat List */}
       <List sx={{ p: 0 }}>
-        {sampleChats.map((chat) => (
-          <ListItem
-            key={chat.id}
-            onClick={() => {
-              onSelectChat(chat.id);
-            }}
-            sx={{
-              py: 1,
-              px: 2,
-              borderRadius: 2,
-              mb: 0.5,
-              backgroundColor:
-                activeChat === chat.id ? '#0f8bd245' : 'transparent',
-              cursor: 'pointer',
-              transition: 'background 0.3s',
-              '&:hover': {
-                backgroundColor: '#0f8bd245',
-              },
-            }}
-          >
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography
+        {chats.map((chat) => {
+          if (chat != 0)
+            return (
+              <ListItem
+                key={chat?.id}
+                onClick={() => {
+                  onSelectChat(chat?.id);
+                }}
                 sx={{
-                  fontSize: 14,
-                  color: '#062c56',
-                  fontWeight: 500,
+                  py: 1,
+                  px: 2,
+                  borderRadius: 2,
+                  mb: 0.5,
+                  backgroundColor:
+                    activeChat === chat.id ? '#0f8bd245' : 'transparent',
+                  cursor: 'pointer',
+                  transition: 'background 0.3s',
+                  '&:hover': {
+                    backgroundColor: '#0f8bd245',
+                  },
                 }}
               >
-                {chat.title}
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: 12,
-                  color: '#034d8a',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '250px',
-                }}
-              >
-                {chat.preview}
-              </Typography>
-            </Box>
-          </ListItem>
-        ))}
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography
+                    sx={{
+                      fontSize: 16,
+                      color: '#062c56',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {chat.title}
+                  </Typography>
+                </Box>
+              </ListItem>
+            );
+          else {
+            return null;
+          }
+        })}
       </List>
     </Box>
   );

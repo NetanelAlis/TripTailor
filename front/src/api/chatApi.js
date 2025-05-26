@@ -4,6 +4,7 @@ function getUserId() {
   // Retrieve user details from local storage
   const userDetails = localStorage.getItem('userDetails');
   if (!userDetails) {
+    console.log('nothing in local storage');
     throw new Error('User details not found in local storage');
   }
 
@@ -16,6 +17,7 @@ function getUserId() {
 }
 export async function sendMessageToChatbot(message, activeChatId) {
   const userId = getUserId();
+
   const response = await axios.post(import.meta.env.VITE_CHAT_LAMBDA_URL, {
     user_prompt: message,
     user_id: userId,
@@ -27,7 +29,6 @@ export async function sendMessageToChatbot(message, activeChatId) {
 
 export async function fetchChatMessages(chatId) {
   const userId = getUserId();
-  console.log(chatId);
   const response = await axios.post(
     import.meta.env.VITE_SET_EXISTING_CHAT_AS_ACTIVE_CHAT_LAMBDA_URL,
     {
@@ -35,5 +36,14 @@ export async function fetchChatMessages(chatId) {
       user_id: userId,
     }
   );
+  return response.data;
+}
+
+export async function getUserChats() {
+  const userId = getUserId();
+  const response = await axios.post(import.meta.env.VITE_GET_USER_CHATS, {
+    user_id: userId,
+  });
+
   return response.data;
 }

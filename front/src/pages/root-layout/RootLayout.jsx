@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import styles from './rootLayout.module.css';
 import NavBar from '../../components/nav-bar/NavBar';
@@ -8,7 +8,8 @@ import Sidebar from '../../components/sidebar/Sidebar';
 export default function RootLayout() {
   const location = useLocation();
   let parsedUserDetails = null;
-  const [activeChat, setActiveChat] = useState(2);
+  const [activeChat, setActiveChat] = useState(0);
+  const numberOfChats = useRef(0);
 
   try {
     const rawUserDetails = localStorage.getItem('userDetails');
@@ -33,6 +34,7 @@ export default function RootLayout() {
 
   const [sideBarOpen, setSideBarOpen] = useState(false);
 
+  console.log('ref value ', numberOfChats.current);
   return (
     <div className={styles.layout}>
       <div className={styles.main}>
@@ -41,6 +43,7 @@ export default function RootLayout() {
           setOpen={setSideBarOpen}
           activeChat={activeChat}
           setActiveChat={setActiveChat}
+          numberOfChats={numberOfChats.current}
         />
         <main
           className={
@@ -61,6 +64,11 @@ export default function RootLayout() {
               context={{
                 handleLogIn: (details) => setUserDetails(details),
                 activeChat,
+                handleActiveChat: (newActiveChat) => {
+                  console.log('the new active chat ', newActiveChat);
+                  numberOfChats.current = newActiveChat;
+                  setActiveChat(newActiveChat);
+                },
               }}
             />
           </div>

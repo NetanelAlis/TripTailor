@@ -1,7 +1,15 @@
 import { Drawer } from '@mui/material';
 import SideBarMenu from './sidebarMenu';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function SideBar({ open, setOpen, activeChat, setActiveChat }) {
+export default function SideBar({
+  open,
+  setOpen,
+  activeChat,
+  setActiveChat,
+  numberOfChats,
+}) {
+  const navigate = useNavigate();
   return (
     <div>
       <Drawer
@@ -17,10 +25,13 @@ export default function SideBar({ open, setOpen, activeChat, setActiveChat }) {
       >
         <SideBarMenu
           onSelectChat={(chatId) => {
-            // setOpen(open);
             setActiveChat(chatId);
+            if (location.pathname !== '/chat') {
+              navigate('/chat');
+            }
           }}
           activeChat={activeChat}
+          numberOfChats={numberOfChats}
         />
       </Drawer>
     </div>
