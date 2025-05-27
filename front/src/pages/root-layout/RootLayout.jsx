@@ -68,6 +68,7 @@ export default function RootLayout() {
                   numberOfChats.current = newActiveChat;
                   setActiveChat(newActiveChat);
                 },
+                setActiveChat,
               }}
             />
           </div>
