@@ -35,7 +35,6 @@ function Chat() {
       setIsLoading(true);
 
       try {
-        console.log(activeChat);
         const response = await sendMessageToChatbot(userMessage, activeChat);
         const chatAnswer = response.ai_reply;
 
