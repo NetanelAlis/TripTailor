@@ -27,6 +27,7 @@ export default function RootLayout() {
     const isLoggedOut = params.get('loggedOut') === 'true';
 
     if (isLoggedOut) {
+      console.log('user logged out');
       localStorage.removeItem('userDetails');
       setUserDetails(false);
     }
@@ -34,7 +35,6 @@ export default function RootLayout() {
 
   const [sideBarOpen, setSideBarOpen] = useState(false);
 
-  console.log('ref value ', numberOfChats.current);
   return (
     <div className={styles.layout}>
       <div className={styles.main}>
@@ -65,7 +65,6 @@ export default function RootLayout() {
                 handleLogIn: (details) => setUserDetails(details),
                 activeChat,
                 handleActiveChat: (newActiveChat) => {
-                  console.log('the new active chat ', newActiveChat);
                   numberOfChats.current = newActiveChat;
                   setActiveChat(newActiveChat);
                 },

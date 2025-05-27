@@ -12,9 +12,9 @@ function NewChat() {
   const newChatClicked = location.state?.newChatClicked;
 
   useEffect(() => {
+    if (!location.search.includes('code=')) return;
     if (first.current) return;
     first.current = true;
-
     function parseJwt(token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -103,6 +103,7 @@ function NewChat() {
 
   useEffect(() => {
     if (!localStorage.getItem('userDetails')) {
+      console.log('no user details');
       return;
     }
     async function updateNumberOfChats() {
@@ -110,7 +111,6 @@ function NewChat() {
         const res = await getUserChats();
         const numberOfChats = Number(res.number_of_chats);
         handleActiveChat(numberOfChats + 1);
-        console.log(res);
       } catch (error) {
         console.log(error);
       }
