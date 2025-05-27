@@ -80,7 +80,6 @@ function NewChat() {
         const res = await getUserChats();
         const numberOfChats = Number(res.number_of_chats);
         handleActiveChat(numberOfChats + 1);
-        console.log(res);
       } catch (error) {
         console.log(error);
       }
@@ -103,9 +102,9 @@ function NewChat() {
 
   useEffect(() => {
     if (!localStorage.getItem('userDetails')) {
-      console.log('no user details');
       return;
     }
+    if (location.search.includes('code=')) return;
     async function updateNumberOfChats() {
       try {
         const res = await getUserChats();

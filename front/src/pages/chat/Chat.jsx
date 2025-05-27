@@ -13,7 +13,7 @@ function Chat() {
   const [messages, setMessages] = useState([]);
   const bottomRef = useRef(null);
   const firstMessageSentRef = useRef(false);
-  const { activeChat } = useOutletContext();
+  const { activeChat, setActiveChat } = useOutletContext();
 
   const addNewMessage = useCallback((userMessage, sender = 'user') => {
     setMessages((prevMessage) => {
@@ -48,17 +48,31 @@ function Chat() {
     [addNewMessage, activeChat]
   );
   useEffect(() => {
-    const firstUserMessage = location.state?.userInput;
-    const newChatClicked = location.state?.newChatClicked;
+    const sendInitialMessage = async () => {
+      const firstUserMessage = location.state?.userInput;
+      const newChatClicked = location.state?.newChatClicked;
+      const newChatId = location.state?.newChatId;
 
-    if ((firstUserMessage && !firstMessageSentRef.current) || newChatClicked) {
-      handleSendMessage(firstUserMessage);
-      firstMessageSentRef.current = true;
-    }
+      if (newChatId) {
+        setActiveChat(newChatId);
+      } else {
+        if (
+          (firstUserMessage && !firstMessageSentRef.current) ||
+          newChatClicked
+        ) {
+          await handleSendMessage(firstUserMessage);
+          firstMessageSentRef.current = true;
+        }
+      }
+    };
+
+    sendInitialMessage();
   }, [
     handleSendMessage,
     location.state?.userInput,
     location.state?.newChatClicked,
+    location.state?.newChatId,
+    setActiveChat,
   ]);
 
   useEffect(() => {
@@ -66,6 +80,7 @@ function Chat() {
   }, [messages]);
 
   useEffect(() => {
+    console.log('get all messages');
     async function updateActiveChatMessages(chatId) {
       setIsLoading(true);
       setMessages([]);
