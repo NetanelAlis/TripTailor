@@ -106,11 +106,6 @@ export default function NavBar({
                     </Link>
                 </li>
                 <li>
-                    <Link to="/new-chat" className={styles['nav-link']}>
-                        My Trips
-                    </Link>
-                </li>
-                <li>
                     <Link to="/#contact" className={styles['nav-link']}>
                         Contact
                     </Link>

@@ -22,7 +22,8 @@
     list-style: none;
     padding: 0;
     padding-bottom: 150px;
-    width: 50%;
+    padding-top: 100px;
+    width: 65%;
 }
 
 .chat-text-box-container {
@@ -55,7 +56,7 @@
     border-bottom-right-radius: 4px;
 }
 
-.bot {
+.assistant {
     background-color: #f8f9fa;
     align-self: flex-start;
     border-bottom-left-radius: 4px;
