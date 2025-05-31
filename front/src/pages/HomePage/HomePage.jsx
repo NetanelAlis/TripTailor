@@ -93,7 +93,7 @@ export default function HomePage() {
                                 alt="Team Member 1"
                                 className={styles['team-photo']}
                             />
-                            <h3>John Doe</h3>
+                            <h3>Nadir Elmakias</h3>
                             <p>
                                 Founder & CEO. Passionate about travel and
                                 technology.
@@ -105,7 +105,7 @@ export default function HomePage() {
                                 alt="Team Member 2"
                                 className={styles['team-photo']}
                             />
-                            <h3>Jane Smith</h3>
+                            <h3>Netanel Alis</h3>
                             <p>
                                 Lead Developer. Expert in building seamless user
                                 experiences.
@@ -117,7 +117,7 @@ export default function HomePage() {
                                 alt="Team Member 3"
                                 className={styles['team-photo']}
                             />
-                            <h3>Emily Johnson</h3>
+                            <h3>Nadav Elkayam</h3>
                             <p>
                                 Marketing Specialist. Focused on connecting with
                                 our users.
