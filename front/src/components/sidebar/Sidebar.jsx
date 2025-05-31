@@ -2,13 +2,7 @@ import { Drawer } from '@mui/material';
 import SideBarMenu from './sidebarMenu';
 import { useNavigate } from 'react-router-dom';
 
-export default function SideBar({
-  open,
-  setOpen,
-  activeChat,
-  setActiveChat,
-  numberOfChats,
-}) {
+export default function SideBar({ open, setOpen, activeChat, numberOfChats }) {
   const navigate = useNavigate();
   return (
     <div>

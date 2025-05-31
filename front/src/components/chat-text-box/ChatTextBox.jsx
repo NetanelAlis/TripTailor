@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlaneDeparture } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 
-function ChatTextBox({ onSendMessage, newChatClicked }) {
+function ChatTextBox({ onSendMessage }) {
   const chatBox = useRef(null);
   const [userInput, setUserInput] = useState('');
   const navigate = useNavigate();
@@ -17,8 +17,7 @@ function ChatTextBox({ onSendMessage, newChatClicked }) {
       setUserInput('');
       await onSendMessage(userInput);
     } else {
-      setUserInput('');
-      navigate('/chat', { state: { userInput, newChatClicked } });
+      navigate('/chat', { state: { userInput, newChatClicked: true } });
     }
   }, [userInput, onSendMessage, navigate]);
 

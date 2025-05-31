@@ -33,7 +33,6 @@ function Chat() {
     async (userMessage) => {
       addNewMessage(userMessage, 'user');
       setIsLoading(true);
-
       try {
         const response = await sendMessageToChatbot(userMessage, activeChat);
         const chatAnswer = response.ai_reply;
@@ -80,7 +79,8 @@ function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    console.log('get all messages');
+    if (location.state?.newChatClicked) return;
+
     async function updateActiveChatMessages(chatId) {
       setIsLoading(true);
       setMessages([]);
