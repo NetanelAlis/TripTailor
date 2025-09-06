@@ -5,26 +5,75 @@ import boto3
 import requests
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import os
 
-CLIENT_ID = 'AMADEUS_CLIENT_ID'
-CLIENT_SECRET = 'AMADEUS_CLIENT_SECRET'
+CLIENT_ID = os.environ.get("AMADEUS_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("AMADEUS_CLIENT_SECRET")
 TOKEN_KEY = 'access_token'
 AMADEUS_GET_TOKEN_URL = "https://test.api.amadeus.com/v1/security/oauth2/token"
 
 dynamodb = boto3.resource('dynamodb')
 service_tokens_table = dynamodb.Table('ServiceTokens')
 flights_table = dynamodb.Table('Flights')
-user_flight_views_table = dynamodb.Table('UserFlightViews')
 
 
 def generate_flight_id(flight_offer):
-    segments = flight_offer["itineraries"][0]["segments"]
-    signature = "|".join(
-        f"{seg['departure']['iataCode']}-{seg['arrival']['iataCode']}-{seg['departure']['at']}-{seg['arrival']['at']}-{seg['carrierCode']}-{seg['number']}"
-        for seg in segments
-    )
-    return hashlib.sha256(signature.encode()).hexdigest()
+    """
+    Generate a unique flight ID that considers all itineraries and key differentiating factors.
+    """
+    # Include the Amadeus flight offer ID as a base identifier
+    amadeus_id = flight_offer.get("id", "")
+    
+    # Build signature from all itineraries (outbound + return)
+    itinerary_signatures = []
+    
+    for i, itinerary in enumerate(flight_offer.get("itineraries", [])):
+        itinerary_segments = []
+        for seg in itinerary.get("segments", []):
+            # Include more detailed segment information
+            segment_sig = (
+                f"{seg.get('departure', {}).get('iataCode', '')}-"
+                f"{seg.get('arrival', {}).get('iataCode', '')}-"
+                f"{seg.get('departure', {}).get('at', '')}-"
+                f"{seg.get('arrival', {}).get('at', '')}-"
+                f"{seg.get('carrierCode', '')}-"
+                f"{seg.get('number', '')}-"
+                f"{seg.get('id', '')}-"
+                f"{seg.get('duration', '')}"
+            )
+            itinerary_segments.append(segment_sig)
+        
+        # Add itinerary duration and segment count
+        itinerary_sig = f"ITIN_{i}:{itinerary.get('duration', '')}:{len(itinerary_segments)}:{'|'.join(itinerary_segments)}"
+        itinerary_signatures.append(itinerary_sig)
+    
+    # Include pricing information for additional uniqueness
+    price_info = ""
+    if "price" in flight_offer:
+        price = flight_offer["price"]
+        price_info = f"PRICE:{price.get('total', '')}:{price.get('currency', '')}:{price.get('base', '')}"
+    
+    # Include fare class information from travelerPricings
+    fare_classes = []
+    for traveler in flight_offer.get("travelerPricings", []):
+        for fare_detail in traveler.get("fareDetailsBySegment", []):
+            fare_classes.append(f"{fare_detail.get('class', '')}:{fare_detail.get('fareBasis', '')}")
+    
+    fare_info = f"FARES:{'|'.join(fare_classes)}" if fare_classes else ""
+    
+    # Combine all elements for final signature
+    signature_parts = [
+        f"AMADEUS_ID:{amadeus_id}",
+        f"ITINERARIES:{len(itinerary_signatures)}",
+        *itinerary_signatures,
+        price_info,
+        fare_info
+    ]
+    
+    final_signature = "||".join(filter(None, signature_parts))
+    
+    return hashlib.sha256(final_signature.encode()).hexdigest()
 
 
 def save_flight_details(flight_details):
@@ -50,53 +99,6 @@ def save_flight_details(flight_details):
         return None
 
 
-def add_flight_to_user_if_not_seen(user_id: str, chat_id: str, flight_id: str) -> bool:
-    user_and_chat_id = f"{user_id}:{chat_id}"
-
-    try:
-        # Check if the item exists first
-        response = user_flight_views_table.query(
-            KeyConditionExpression=Key('UserAndChatID').eq(user_and_chat_id),
-            ScanIndexForward=False,
-        )
-
-        items = response.get('Items', [])
-        if len(items) == 1:
-            item = items[0]
-        else: item = None
-
-        print("Item: ", item)
-        if item:
-            # Update it
-            user_flight_views_table.update_item(
-                Key={
-                    "UserAndChatID": user_and_chat_id,
-                    "timestamp": int(time.time() * 1000)
-                },
-                UpdateExpression="SET flightIds = list_append(if_not_exists(flightIds, :empty_list), :new_id)",
-                ExpressionAttributeValues={
-                    ":new_id": [flight_id],
-                    ":empty_list": []
-                }
-            )
-        else:
-            # Create new item
-            user_flight_views_table.put_item(
-                Item={
-                    "UserAndChatID": user_and_chat_id,
-                    "timestamp": int(time.time() * 1000),
-                    "flightIds": [flight_id]
-                }
-            )
-
-        print("Flight added to user's viewed list.")
-        return True
-
-    except ClientError as e:
-        print(f"Error updating user flight views list: {e.response['Error']['Message']}")
-        raise
-
-
 def convert_date_from_str_to_epoch(date_str):
     departure_dt = datetime.fromisoformat(date_str)
 
@@ -112,15 +114,18 @@ def get_token_from_db():
     try:
         response = service_tokens_table.get_item(Key={
             'serviceName': 'AmadeusAPI',
-            'tokenType': 'flight-search'
+            'tokenType': 'flight-search-v2'
         })
 
         item = response.get('Item')
-        print("Retrieved token from DB:", item)
-
         if item and item.get('id') == 'access_token':
-            if time.time() < item['expires_at']:
+            current_time = time.time()
+            expires_at = item['expires_at']
+            
+            if current_time < expires_at:
                 return item['token']
+            else:
+                print("Token has expired!")
         return None
     except ClientError as e:
         print("DynamoDB error:", e)
@@ -132,18 +137,18 @@ def store_token_in_db(token, expires_in):
         expires_at = int(time.time()) + expires_in - 60  # 60 sec buffer
         item = {
             'serviceName': 'AmadeusAPI',
-            'tokenType': 'flight-search',
+            'tokenType': 'flight-search-v2',
             'id': 'access_token',
             'token': token,
             'expires_at': expires_at
         }
         service_tokens_table.put_item(Item=item)
-        print("Stored token in DB:", item)
+        print("Stored token in DB.")
     except ClientError as e:
         print("Failed to store token:", e)
 
 
-def get_token_from_amadeus() :
+def get_token_from_amadeus():
     url = AMADEUS_GET_TOKEN_URL
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     data = {
@@ -153,10 +158,9 @@ def get_token_from_amadeus() :
     }
 
     response = requests.post(url, headers=headers, data=data)
-    print("Amadeus token response:", response.text)
     response.raise_for_status()
-
     return response.json()
+
 
 def get_token():
     token = get_token_from_db()
@@ -165,7 +169,6 @@ def get_token():
 
     result = get_token_from_amadeus()
     store_token_in_db(result['access_token'], result['expires_in'])
-
     return result['access_token']
 
 
@@ -196,38 +199,75 @@ def lambda_handler(event, context):
         }
 
     try:
-        print("body: ", body)
         params = body['params']
         token = get_token()
+        print(f"Retrieved token: {token[:20] if token else 'None'}...")
+        
         amadeus_headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
 
-        print("sending request to Amadeus with params: ", params)
+        # Clean and validate Amadeus parameters
+        amadeus_params = params.copy()
+        
+        # Only add returnDate if it's missing
+        if 'returnDate' not in amadeus_params or not amadeus_params.get('returnDate'):
+            try:
+                dep_date = datetime.strptime(amadeus_params['departureDate'], '%Y-%m-%d')
+                ret_date = dep_date + timedelta(days=7)  # Default 7 days later
+                amadeus_params['returnDate'] = ret_date.strftime('%Y-%m-%d')
+                print(f"Added default returnDate: {amadeus_params['returnDate']}")
+            except Exception:
+                print("Could not add default returnDate")
+        
+        # Remove any None or empty values
+        amadeus_params = {k: v for k, v in amadeus_params.items() if v is not None and v != ''}
+        
+        print(f"Searching flights with params: {amadeus_params}")
+        
+        # Make request to Amadeus API
         response = requests.get(
             "https://test.api.amadeus.com/v2/shopping/flight-offers",
             headers=amadeus_headers,
-            params=params
+            params=amadeus_params
         )
 
+        print(f"Amadeus response status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"Amadeus error: {response.text}")
+            
         response.raise_for_status()
-        print(response.json())
+        amadeus_data = response.json()
+        
+        print(f"Found {len(amadeus_data.get('data', []))} flights")
 
-        # save Flights details to DynamoDB
-        for flight in response.json()['data']:
+        # Save flight details to DynamoDB and collect IDs
+        out_ids = []
+        for i, flight in enumerate(amadeus_data.get('data', [])):
             flight_id = save_flight_details(flight)
             if flight_id:
-                add_flight_to_user_if_not_seen(body['user_id'], body['chat_id'], flight_id)
+                out_ids.append(flight_id)
+                # Debug: Print first few characters of ID and Amadeus ID
+                amadeus_id = flight.get('id', 'N/A')
+                print(f"Flight {i+1}: Amadeus ID {amadeus_id} -> Generated ID {flight_id[:16]}...")
+            else:
+                print(f"Flight {i+1}: Failed to save (duplicate or error)")
 
+        print(f"Saved {len(out_ids)} flight IDs")
+        amadeus_data['flightIds'] = out_ids
+        
         return {
             'statusCode': 200,
             'headers': response_headers,
-            'body': json.dumps(response.json())
+            'body': json.dumps(amadeus_data)
         }
 
     except Exception as e:
+        print(f"Error in search_flights: {str(e)}")
         return {
             'statusCode': 500,
+            'headers': response_headers,
             'body': json.dumps({"error": str(e)})
         }

@@ -52,14 +52,43 @@ def lambda_handler(event, context):
                 'user_id': user_id,
                 'number_of_chats': 0,
                 'active_chat': 0,
+                'chat_titles': [],
             }
         )
         number_of_chats = 0
+        chat_titles = []
+        active_chat = 0
     else:
-        number_of_chats = user_info[0].get('number_of_chats', 0)
+        item = user_info[0]
+        number_of_chats = item.get('number_of_chats', 0)
+        chat_titles = item.get('chat_titles', []) or []
+        active_chat = item.get('active_chat', 0)
+
+    # Build a lightweight chats array with titles if present
+    chats = []
+    try:
+        n = int(number_of_chats)
+    except Exception:
+        n = 0
+
+    # Return chats newest-first so the UI shows recent chats on top
+    for i in range(n, 0, -1):
+        idx = i - 1
+        title = ''
+        if idx < len(chat_titles):
+            title = chat_titles[idx] or ''
+        chats.append({
+            'chat_id': str(i),
+            'title': title,
+        })
 
     return {
         "statusCode": 200,
         "headers": headers,
-        "body": json.dumps({"number_of_chats": str(number_of_chats)})
+        "body": json.dumps({
+            "number_of_chats": str(number_of_chats),
+            "active_chat": str(active_chat),
+            "chat_titles": chat_titles,
+            "chats": chats
+        })
     }
