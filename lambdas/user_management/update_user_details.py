@@ -135,8 +135,9 @@ def lambda_handler(event, context):
     # CORS headers
     headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Credentials': 'false'
     }
 
     # Handle preflight OPTIONS request
@@ -177,4 +178,12 @@ def lambda_handler(event, context):
         }
 
     # Update user details
-    return update_user_details(user_id, update_data, headers)
+    try:
+        return update_user_details(user_id, update_data, headers)
+    except Exception as e:
+        print(f"[update_user_details] Unexpected error: {str(e)}")
+        return {
+            "statusCode": 500,
+            "headers": headers,
+            "body": json.dumps({"error": f"Internal server error: {str(e)}"})
+        }

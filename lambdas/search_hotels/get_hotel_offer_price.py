@@ -1,8 +1,7 @@
 import json
 import os
 import time
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 import boto3
 from boto3.dynamodb.conditions import Key
 import requests
@@ -114,33 +113,25 @@ def extract_offer_ids(hotel_details: Dict) -> List[str]:
 def extract_self_url_from_hotel_details(hotel_details: Dict) -> Optional[str]:
     """Extract the 'self' URL from hotel offer details for fallback."""
     try:
-        print(f"🔍 Debug: Extracting self URL from hotel details structure")
-        print(f"🔍 Debug: Hotel details keys: {list(hotel_details.keys()) if isinstance(hotel_details, dict) else 'Not a dict'}")
-        
         # Look for self URL in the hotel details structure
         if isinstance(hotel_details, dict):
             # Check if self URL is at the top level
             if "self" in hotel_details:
                 self_url = hotel_details["self"]
-                print(f"🔍 Debug: Found self URL at top level: {self_url}")
                 return self_url
             
             # Check if self URL is in offers
             offers = hotel_details.get("offers", [])
-            print(f"🔍 Debug: Found {len(offers)} offers")
             for i, offer in enumerate(offers):
                 if isinstance(offer, dict) and "self" in offer:
                     self_url = offer["self"]
-                    print(f"🔍 Debug: Found self URL in offer {i}: {self_url}")
                     return self_url
             
             # Check if self URL is in the main hotel data
             if "data" in hotel_details and "self" in hotel_details["data"]:
                 self_url = hotel_details["data"]["self"]
-                print(f"🔍 Debug: Found self URL in data: {self_url}")
                 return self_url
         
-        print(f"🔍 Debug: No self URL found in hotel details")
         return None
     except Exception as e:
         print(f"Error extracting self URL: {e}")
@@ -153,7 +144,6 @@ def call_amadeus_hotel_search_with_self_url(self_url: str, access_token: str) ->
     try:
         headers = {"Authorization": f"Bearer {access_token}"}
         
-        print(f"Calling Amadeus hotel search with self URL: {self_url}")
         response = requests.get(
             self_url, 
             headers=headers, 
@@ -179,11 +169,8 @@ def call_amadeus_hotel_pricing(offer_id: str, access_token: str, hotel_details: 
             "Authorization": f"Bearer {access_token}"
         }
         
-        print(f"Calling Amadeus pricing API for offer ID: {offer_id}")
-        
         # The Amadeus hotel pricing API expects a GET request to the specific offer endpoint
         offer_url = f"{HOTEL_PRICING_ENDPOINT}/{offer_id}"
-        print(f"Calling Amadeus pricing API at: {offer_url}")
         
         response = requests.get(
             offer_url, 
@@ -230,8 +217,6 @@ def process_hotel_pricing_with_fallback(hotel_id: str, hotel_details: Dict, acce
             "error": "No offer IDs found in hotel details"
         }
     
-    print(f"Processing {len(offer_ids)} offers for hotel {hotel_id}")
-    
     # First attempt: Try pricing with current offer IDs
     hotel_results = []
     with ThreadPoolExecutor(max_workers=MAX_CONCURRENT_REQUESTS) as executor:
@@ -260,22 +245,14 @@ def process_hotel_pricing_with_fallback(hotel_id: str, hotel_details: Dict, acce
     
     # If we have failed offers and can try fallback, attempt it
     if failed_offers_with_fallback:
-        print(f"Attempting fallback for {len(failed_offers_with_fallback)} failed offers")
-        
         # Get fresh offer data using self URL
         self_url = extract_self_url_from_hotel_details(hotel_details)
         if self_url:
-            print(f"🔍 Debug: Attempting fallback with self URL: {self_url}")
             fresh_hotel_data = call_amadeus_hotel_search_with_self_url(self_url, access_token)
-            
             if fresh_hotel_data:
-                print(f"🔍 Debug: Successfully got fresh hotel data from self URL")
                 # Extract fresh offer IDs from the new data
                 fresh_offer_ids = extract_offer_ids(fresh_hotel_data)
-                
-                if fresh_offer_ids:
-                    print(f"Retrying pricing with {len(fresh_offer_ids)} fresh offers")
-                    
+                if fresh_offer_ids:                    
                     # Retry pricing with fresh offer IDs
                     with ThreadPoolExecutor(max_workers=MAX_CONCURRENT_REQUESTS) as executor:
                         fallback_future_to_offer = {
@@ -291,15 +268,12 @@ def process_hotel_pricing_with_fallback(hotel_id: str, hotel_details: Dict, acce
                                 # Even fallback failed, add to results
                                 successful_results.append(fallback_result)
                 else:
-                    print("No fresh offer IDs found in fallback data")
                     # Add original failed results
                     successful_results.extend(failed_offers_with_fallback)
             else:
-                print(f"🔍 Debug: Failed to get fresh hotel data from self URL - this caused the 404 error")
                 # Add original failed results
                 successful_results.extend(failed_offers_with_fallback)
         else:
-            print("No self URL found for fallback")
             # Add original failed results
             successful_results.extend(failed_offers_with_fallback)
     else:
@@ -321,9 +295,7 @@ def process_hotel_pricing_requests(hotel_ids: List[str]) -> List[Dict]:
     results = []
     
     # Process hotels sequentially but offers in parallel to avoid overwhelming Amadeus
-    for hotel_id in hotel_ids:
-        print(f"Processing hotel ID: {hotel_id}")
-        
+    for hotel_id in hotel_ids:        
         # Get hotel details from DynamoDB
         hotel_details = get_hotel_offer_details(hotel_id)
         if not hotel_details:
@@ -370,8 +342,6 @@ def process_hotel_pricing_requests(hotel_ids: List[str]) -> List[Dict]:
 
 # ========================= Lambda handler =========================
 def lambda_handler(event, context):
-    print("start tripTailor-getHotelsOffersPrice-search-dev")
-
     # CORS
     cors_headers = {
         "Access-Control-Allow-Origin": "*",
@@ -403,8 +373,6 @@ def lambda_handler(event, context):
     if not hotel_ids_list or not isinstance(hotel_ids_list, (list, tuple)):
         return {"statusCode": 400, "headers": cors_headers, "body": json.dumps({"error": "Missing hotelId(s)"})}
 
-    print(f"Processing {len(hotel_ids_list)} hotels for pricing")
-
     # 2) Process all hotel pricing requests
     try:
         results = process_hotel_pricing_requests(hotel_ids_list)
@@ -414,9 +382,6 @@ def lambda_handler(event, context):
             "success": True,
             "data": results  # This is now a list of hotel results
         }
-        
-        # Log the response to CloudWatch for debugging
-        print(f"Lambda response: {json.dumps(response_body, default=str)}")
         
         return {
             "statusCode": 200, 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge } from '../../../Client/Components/ui/badge';
-import { Plane, Clock, Luggage, Shield, Armchair } from 'lucide-react';
+import { Plane, Clock, Luggage, Armchair } from 'lucide-react';
 import {
     getAirlineName,
     getAirportName,
@@ -13,12 +13,11 @@ import {
 import {
     formatCurrency,
     getUserPreferredCurrency,
-    convertToUserCurrency,
+    convertToUserCurrencyAmount,
 } from '../../../Client/utils/currencyConverter';
 
 export default function FlightSummary({ flight, flightIndex }) {
     const flightOffer = flight.pricingData?.data?.flightOffers?.[0];
-    const hasReturn = flightOffer?.itineraries?.length > 1;
 
     return (
         <div className="border border-slate-200 rounded-lg overflow-hidden">
@@ -66,7 +65,7 @@ export default function FlightSummary({ flight, flightIndex }) {
                         <p className="text-2xl font-bold text-blue-600">
                             {flightOffer?.price?.total
                                 ? formatCurrency(
-                                      convertToUserCurrency(
+                                      convertToUserCurrencyAmount(
                                           parseFloat(flightOffer.price.total),
                                           flightOffer.price.currency
                                       ),
@@ -484,7 +483,7 @@ export default function FlightSummary({ flight, flightIndex }) {
                                     {flightOffer?.travelerPricings?.[0]?.price
                                         ?.base
                                         ? formatCurrency(
-                                              convertToUserCurrency(
+                                              convertToUserCurrencyAmount(
                                                   parseFloat(
                                                       flightOffer
                                                           .travelerPricings[0]
@@ -532,7 +531,7 @@ export default function FlightSummary({ flight, flightIndex }) {
                                             (flightOffer?.travelerPricings
                                                 ?.length || 1);
                                         return formatCurrency(
-                                            convertToUserCurrency(
+                                            convertToUserCurrencyAmount(
                                                 taxesAmount,
                                                 flightOffer?.price?.currency
                                             ),
@@ -546,7 +545,7 @@ export default function FlightSummary({ flight, flightIndex }) {
                                 <span className="text-slate-800">
                                     {flightOffer?.price?.total
                                         ? formatCurrency(
-                                              convertToUserCurrency(
+                                              convertToUserCurrencyAmount(
                                                   parseFloat(
                                                       flightOffer.price.total
                                                   ),

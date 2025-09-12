@@ -12,9 +12,28 @@ import MarkdownRenderer from './MarkdownRenderer.jsx';
 import { getAirlineName } from '../../utils/airlineCodes.js';
 import {
     formatCurrency,
-    convertToUserCurrency,
+    convertToUserCurrencyAmount,
     getUserPreferredCurrency,
 } from '../../utils/currencyConverter.js';
+
+// Helper function to parse and format price strings
+const parseAndFormatPrice = (priceString) => {
+    if (!priceString || priceString === 'Price TBD') {
+        return 'Price TBD';
+    }
+
+    // Parse price string like "444.94 USD"
+    const priceMatch = priceString.match(/^([\d,]+\.?\d*)\s+([A-Z]{3})$/);
+    if (priceMatch) {
+        const amount = parseFloat(priceMatch[1].replace(/,/g, ''));
+        const currency = priceMatch[2];
+        return formatCurrency(
+            convertToUserCurrencyAmount(amount, currency),
+            getUserPreferredCurrency()
+        );
+    }
+    return priceString; // Fallback to original string
+};
 
 const MessageBubble = ({ message, isTyping = false }) => {
     const isUser = message?.sender === 'user';
@@ -142,28 +161,7 @@ const FlightResults = ({ data }) => (
                     </div>
                     <div className="text-right">
                         <p className="font-bold text-lg text-blue-600">
-                            {flight.price && flight.price !== 'Price TBD'
-                                ? (() => {
-                                      // Parse price string like "444.94 USD"
-                                      const priceMatch = flight.price.match(
-                                          /^([\d,]+\.?\d*)\s+([A-Z]{3})$/
-                                      );
-                                      if (priceMatch) {
-                                          const amount = parseFloat(
-                                              priceMatch[1].replace(/,/g, '')
-                                          );
-                                          const currency = priceMatch[2];
-                                          return formatCurrency(
-                                              convertToUserCurrency(
-                                                  amount,
-                                                  currency
-                                              ),
-                                              getUserPreferredCurrency()
-                                          );
-                                      }
-                                      return flight.price; // Fallback to original string
-                                  })()
-                                : 'Price TBD'}
+                            {parseAndFormatPrice(flight.price)}
                         </p>
                         <p className="text-xs text-slate-500">per person</p>
                     </div>
@@ -204,28 +202,7 @@ const HotelResults = ({ data }) => (
                     </div>
                     <div className="text-right">
                         <p className="font-bold text-lg text-teal-600">
-                            {hotel.price && hotel.price !== 'Price TBD'
-                                ? (() => {
-                                      // Parse price string like "444.94 USD"
-                                      const priceMatch = hotel.price.match(
-                                          /^([\d,]+\.?\d*)\s+([A-Z]{3})$/
-                                      );
-                                      if (priceMatch) {
-                                          const amount = parseFloat(
-                                              priceMatch[1].replace(/,/g, '')
-                                          );
-                                          const currency = priceMatch[2];
-                                          return formatCurrency(
-                                              convertToUserCurrency(
-                                                  amount,
-                                                  currency
-                                              ),
-                                              getUserPreferredCurrency()
-                                          );
-                                      }
-                                      return hotel.price; // Fallback to original string
-                                  })()
-                                : 'Price TBD'}
+                            {parseAndFormatPrice(hotel.price)}
                         </p>
                         <p className="text-xs text-slate-500">per night</p>
                     </div>

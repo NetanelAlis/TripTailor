@@ -161,18 +161,10 @@ export async function getHotelOffersPricing(hotelIds) {
         // The lambda now returns: { data: [{ hotel_id, success, used_fallback, hotel_offer_price }] }
         const hotelResults = response.data.data || [];
 
-        console.log('🔍 API Debug: Raw lambda response:', response.data);
-        console.log('🔍 API Debug: Hotel results:', hotelResults);
-
         // Create results in the simplified format
         const results = hotelIds.map((hotelId) => {
             const hotelResult = hotelResults.find(
                 (result) => result.hotel_id === hotelId
-            );
-
-            console.log(
-                `🔍 API Debug: Processing hotel ${hotelId}:`,
-                hotelResult
             );
 
             if (!hotelResult || !hotelResult.success) {
@@ -195,7 +187,6 @@ export async function getHotelOffersPricing(hotelIds) {
             };
         });
 
-        console.log('🔍 API Debug: Final results:', results);
         return results;
     } catch (error) {
         console.error('Error calling hotel pricing Lambda:', error);
@@ -204,52 +195,25 @@ export async function getHotelOffersPricing(hotelIds) {
 }
 
 export async function getHotelRatings(hotels) {
-    console.log('🏨 Hotel Ratings API: Starting request with hotels:', hotels);
-
     if (!hotels || hotels.length === 0) {
-        console.log('🏨 Hotel Ratings API: No hotels provided, throwing error');
         throw new Error('No hotels provided');
     }
 
     const userId = getUserId();
-    console.log('🏨 Hotel Ratings API: User ID:', userId);
 
     const requestData = {
         hotels: hotels, // Array of {hotel_id, hotelId} objects
         user_id: userId,
     };
 
-    console.log(
-        '🏨 Hotel Ratings API: Request data:',
-        JSON.stringify(requestData, null, 2)
-    );
-    console.log(
-        '🏨 Hotel Ratings API: Lambda URL:',
-        import.meta.env.VITE_GET_HOTELS_RATING_LAMBDA_URL
-    );
-
     try {
-        console.log('🏨 Hotel Ratings API: Making POST request...');
         const response = await axios.post(
             import.meta.env.VITE_GET_HOTELS_RATING_LAMBDA_URL,
             requestData
         );
 
-        console.log('🏨 Hotel Ratings API: Response status:', response.status);
-        console.log(
-            '🏨 Hotel Ratings API: Response headers:',
-            response.headers
-        );
-
-        console.log(
-            '🔍 Ratings API Debug: Raw lambda response:',
-            response.data
-        );
-
         // The lambda returns: { success: true, data: [{ hotel_id, hotelId, success, rating_data }] }
         const ratingsResults = response.data.data || [];
-
-        console.log('🔍 Ratings API Debug: Rating results:', ratingsResults);
 
         // Create results mapped by hotel_id for easy lookup
         const results = ratingsResults.reduce((acc, result) => {
@@ -261,23 +225,10 @@ export async function getHotelRatings(hotels) {
             return acc;
         }, {});
 
-        console.log('🏨 Hotel Ratings API: Final processed results:', results);
         return results;
     } catch (error) {
-        console.error('🏨 Hotel Ratings API: Error occurred:', error);
-        console.error('🏨 Hotel Ratings API: Error message:', error.message);
-        console.error(
-            '🏨 Hotel Ratings API: Error response:',
-            error.response?.data
-        );
-        console.error(
-            '🏨 Hotel Ratings API: Error status:',
-            error.response?.status
-        );
-        console.error(
-            '🏨 Hotel Ratings API: Error headers:',
-            error.response?.headers
-        );
+        console.error('Error calling hotel ratings Lambda:', error);
+        console.error('Hotel ratings error response:', error.response?.data);
 
         // Return empty object so UI can gracefully handle missing ratings
         return {};

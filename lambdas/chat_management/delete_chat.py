@@ -57,7 +57,6 @@ def delete_chat_messages(user_id, chat_id):
                     except ClientError as e:
                         print(f"Error deleting message {message.get('timestamp')}: {e}")
         
-        print(f"Deleted {deleted_count} messages for chat {chat_id}")
         return deleted_count
         
     except ClientError as e:
@@ -101,7 +100,6 @@ def delete_trip_data(user_id, chat_id):
                 except ClientError as e:
                     print(f"Error deleting trip {trip.get('UserAndChatID')}: {e}")
         
-        print(f"Deleted {deleted_count} trip records for chat {chat_id}")
         return deleted_count
         
     except ClientError as e:
@@ -119,7 +117,6 @@ def mark_chat_as_deleted_in_user(user_id, chat_id):
         )
         
         if 'Item' not in response:
-            print(f"User {user_id} not found")
             return False
         
         user = response['Item']
@@ -129,12 +126,10 @@ def mark_chat_as_deleted_in_user(user_id, chat_id):
         try:
             chat_index = int(chat_id) - 1  # Convert to 0-based index
         except ValueError:
-            print(f"Invalid chat_id format: {chat_id}")
             return False
         
         # Check if the index is valid
         if chat_index < 0 or chat_index >= len(chat_titles):
-            print(f"Chat index {chat_index} is out of range for chat_titles array of length {len(chat_titles)}")
             return False
         
         # Update the chat title to 'DELETED'
@@ -149,7 +144,6 @@ def mark_chat_as_deleted_in_user(user_id, chat_id):
             }
         )
         
-        print(f"Marked chat {chat_id} as deleted in user {user_id}")
         return True
         
     except ClientError as e:
@@ -157,7 +151,6 @@ def mark_chat_as_deleted_in_user(user_id, chat_id):
         return False
 
 def lambda_handler(event, context):
-    print("start delete chat lambda")
     
     # CORS headers
     response_headers = {
@@ -195,8 +188,6 @@ def lambda_handler(event, context):
                 "headers": response_headers,
                 "body": json.dumps({"error": "chatID is required"})
             }
-        
-        print(f"Deleting chat {chat_id} for user {user_id}")
         
         # Delete chat messages
         messages_deleted = delete_chat_messages(user_id, chat_id)

@@ -74,7 +74,7 @@ functionsDescription = [
                 },
                 "currencyCode": {
                     "type": "string",
-                    "description": "Currency code for displaying flight prices (e.g., USD, EUR, ILS)."
+                    "description": "Currency code for displaying flight prices (e.g., USD, EUR, ILS). If not specified, use USD, EUR or ILS."
                 },
                 "maxPrice": {
                     "type": "number",
@@ -121,7 +121,7 @@ functionsDescription = [
                 },
                 "currencyCode": {
                     "type": "string",
-                    "description": "Currency code for prices (e.g., ILS, USD, EUR)."
+                    "description": "Currency code for prices (e.g., ILS, USD, EUR). If not specified, use ILS, USD or EUR."
                 },
                 "radius": {
                     "type": "number",
@@ -348,34 +348,86 @@ def get_location_context(user_location):
             return None
             
         # Simple airport mapping based on major cities/regions
-        # This is a basic implementation - in production you'd want a more comprehensive database
+        # NOTE: Coordinates are approximate city centers (not precise airport coords).
+        # For production, consider a real airport DB (IATA→lat/lon) + nearest-lookup.
+
         major_airports = {
-            # US East Coast
-            (40.7128, -74.0060): {'city': 'New York', 'airport': 'JFK', 'code': 'JFK', 'region': 'US East Coast'},
-            (40.6892, -74.1745): {'city': 'Newark', 'airport': 'Newark', 'code': 'EWR', 'region': 'US East Coast'},
-            (42.3601, -71.0589): {'city': 'Boston', 'airport': 'Logan', 'code': 'BOS', 'region': 'US East Coast'},
-            (38.9072, -77.0369): {'city': 'Washington DC', 'airport': 'Reagan', 'code': 'DCA', 'region': 'US East Coast'},
-            
-            # US West Coast  
-            (34.0522, -118.2437): {'city': 'Los Angeles', 'airport': 'LAX', 'code': 'LAX', 'region': 'US West Coast'},
-            (37.7749, -122.4194): {'city': 'San Francisco', 'airport': 'SFO', 'code': 'SFO', 'region': 'US West Coast'},
-            (47.6062, -122.3321): {'city': 'Seattle', 'airport': 'Sea-Tac', 'code': 'SEA', 'region': 'US West Coast'},
-            
-            # Europe
-            (51.5074, -0.1278): {'city': 'London', 'airport': 'Heathrow', 'code': 'LHR', 'region': 'Europe'},
-            (48.8566, 2.3522): {'city': 'Paris', 'airport': 'Charles de Gaulle', 'code': 'CDG', 'region': 'Europe'},
-            (52.5200, 13.4050): {'city': 'Berlin', 'airport': 'Brandenburg', 'code': 'BER', 'region': 'Europe'},
-            (41.9028, 12.4964): {'city': 'Rome', 'airport': 'Fiumicino', 'code': 'FCO', 'region': 'Europe'},
-            
-            # Middle East
-            (32.0853, 34.7818): {'city': 'Tel Aviv', 'airport': 'Ben Gurion', 'code': 'TLV', 'region': 'Middle East'},
-            (25.2048, 55.2708): {'city': 'Dubai', 'airport': 'Dubai International', 'code': 'DXB', 'region': 'Middle East'},
-            
-            # Asia
-            (35.6762, 139.6503): {'city': 'Tokyo', 'airport': 'Narita', 'code': 'NRT', 'region': 'Asia'},
-            (1.3521, 103.8198): {'city': 'Singapore', 'airport': 'Changi', 'code': 'SIN', 'region': 'Asia'},
-            (22.3193, 114.1694): {'city': 'Hong Kong', 'airport': 'Hong Kong International', 'code': 'HKG', 'region': 'Asia'},
+            # --- US East Coast ---
+            (40.7128, -74.0060): {'city': 'New York',       'airport': 'JFK',                           'code': 'JFK', 'region': 'US East Coast'},
+            (40.6892, -74.1745): {'city': 'Newark',         'airport': 'Newark',                        'code': 'EWR', 'region': 'US East Coast'},
+            (42.3601, -71.0589): {'city': 'Boston',         'airport': 'Logan',                         'code': 'BOS', 'region': 'US East Coast'},
+            (38.9072, -77.0369): {'city': 'Washington DC',  'airport': 'Reagan',                        'code': 'DCA', 'region': 'US East Coast'},
+            (39.9526, -75.1652): {'city': 'Philadelphia',   'airport': 'Philadelphia International',    'code': 'PHL', 'region': 'US East Coast'},
+            (35.2271, -80.8431): {'city': 'Charlotte',      'airport': 'Charlotte Douglas',             'code': 'CLT', 'region': 'US East Coast'},
+            (25.7617, -80.1918): {'city': 'Miami',          'airport': 'Miami International',            'code': 'MIA', 'region': 'US East Coast'},
+            (28.5383, -81.3792): {'city': 'Orlando',        'airport': 'Orlando International',          'code': 'MCO', 'region': 'US East Coast'},
+
+            # --- US South / Midwest / Mountain / West ---
+            (33.7490, -84.3880): {'city': 'Atlanta',        'airport': 'Hartsfield–Jackson',             'code': 'ATL', 'region': 'US South'},
+            (41.8781, -87.6298): {'city': 'Chicago',        'airport': "O'Hare",                        'code': 'ORD', 'region': 'US Midwest'},
+            (42.3314, -83.0458): {'city': 'Detroit',        'airport': 'Detroit Metro',                  'code': 'DTW', 'region': 'US Midwest'},
+            (44.9778, -93.2650): {'city': 'Minneapolis',    'airport': 'Minneapolis–Saint Paul',         'code': 'MSP', 'region': 'US Midwest'},
+            (32.7767, -96.7970): {'city': 'Dallas',         'airport': 'Dallas–Fort Worth',              'code': 'DFW', 'region': 'US South'},
+            (29.7604, -95.3698): {'city': 'Houston',        'airport': 'George Bush Intercontinental',   'code': 'IAH', 'region': 'US South'},
+            (30.2672, -97.7431): {'city': 'Austin',         'airport': 'Austin–Bergstrom',               'code': 'AUS', 'region': 'US South'},
+            (39.7392, -104.9903):{'city': 'Denver',         'airport': 'Denver International',           'code': 'DEN', 'region': 'US Mountain West'},
+            (33.4484, -112.0740):{'city': 'Phoenix',        'airport': 'Sky Harbor',                     'code': 'PHX', 'region': 'US Mountain West'},
+            (36.1699, -115.1398):{'city': 'Las Vegas',      'airport': 'Harry Reid International',       'code': 'LAS', 'region': 'US Mountain West'},
+            (40.7608, -111.8910):{'city': 'Salt Lake City', 'airport': 'Salt Lake City International',   'code': 'SLC', 'region': 'US Mountain West'},
+            (34.0522, -118.2437):{'city': 'Los Angeles',    'airport': 'LAX',                            'code': 'LAX', 'region': 'US West Coast'},
+            (37.7749, -122.4194):{'city': 'San Francisco',  'airport': 'SFO',                            'code': 'SFO', 'region': 'US West Coast'},
+            (47.6062, -122.3321):{'city': 'Seattle',        'airport': 'Sea-Tac',                        'code': 'SEA', 'region': 'US West Coast'},
+            (32.7157, -117.1611):{'city': 'San Diego',      'airport': 'San Diego International',        'code': 'SAN', 'region': 'US West Coast'},
+            (37.3382, -121.8863):{'city': 'San Jose',       'airport': 'Mineta San Jose',                'code': 'SJC', 'region': 'US West Coast'},
+            (45.5152, -122.6784):{'city': 'Portland',       'airport': 'Portland International',         'code': 'PDX', 'region': 'US West Coast'},
+
+            # --- Canada ---
+            (43.6532, -79.3832): {'city': 'Toronto',        'airport': 'Pearson',                        'code': 'YYZ', 'region': 'Canada'},
+            (45.5017, -73.5673): {'city': 'Montreal',       'airport': 'Trudeau',                        'code': 'YUL', 'region': 'Canada'},
+            (49.2827, -123.1207):{'city': 'Vancouver',      'airport': 'Vancouver International',        'code': 'YVR', 'region': 'Canada'},
+
+            # --- Europe ---
+            (51.5074,  -0.1278): {'city': 'London',         'airport': 'Heathrow',                       'code': 'LHR', 'region': 'Europe'},
+            (48.8566,   2.3522): {'city': 'Paris',          'airport': 'Charles de Gaulle',              'code': 'CDG', 'region': 'Europe'},
+            (52.5200,  13.4050): {'city': 'Berlin',         'airport': 'Brandenburg',                    'code': 'BER', 'region': 'Europe'},
+            (41.9028,  12.4964): {'city': 'Rome',           'airport': 'Fiumicino',                      'code': 'FCO', 'region': 'Europe'},
+            (52.3676,   4.9041): {'city': 'Amsterdam',      'airport': 'Schiphol',                       'code': 'AMS', 'region': 'Europe'},
+            (50.1109,   8.6821): {'city': 'Frankfurt',      'airport': 'Frankfurt',                      'code': 'FRA', 'region': 'Europe'},
+            (48.1351,  11.5820): {'city': 'Munich',         'airport': 'Munich',                         'code': 'MUC', 'region': 'Europe'},
+            (40.4168,  -3.7038): {'city': 'Madrid',         'airport': 'Adolfo Suárez Madrid–Barajas',   'code': 'MAD', 'region': 'Europe'},
+            (41.3874,   2.1686): {'city': 'Barcelona',      'airport': 'El Prat',                        'code': 'BCN', 'region': 'Europe'},
+            (47.3769,   8.5417): {'city': 'Zurich',         'airport': 'Zurich',                         'code': 'ZRH', 'region': 'Europe'},
+            (48.2082,  16.3738): {'city': 'Vienna',         'airport': 'Vienna International',           'code': 'VIE', 'region': 'Europe'},
+            (55.6761,  12.5683): {'city': 'Copenhagen',     'airport': 'Copenhagen (Kastrup)',           'code': 'CPH', 'region': 'Europe'},
+            (53.3498,  -6.2603): {'city': 'Dublin',         'airport': 'Dublin',                         'code': 'DUB', 'region': 'Europe'},
+            (50.8503,   4.3517): {'city': 'Brussels',       'airport': 'Brussels (Zaventem)',            'code': 'BRU', 'region': 'Europe'},
+            (38.7223,  -9.1393): {'city': 'Lisbon',         'airport': 'Humberto Delgado',               'code': 'LIS', 'region': 'Europe'},
+            (37.9838,  23.7275): {'city': 'Athens',         'airport': 'Eleftherios Venizelos',          'code': 'ATH', 'region': 'Europe'},
+            (41.0082,  28.9784): {'city': 'Istanbul',       'airport': 'Istanbul Airport',               'code': 'IST', 'region': 'Europe'},
+            (52.2297,  21.0122): {'city': 'Warsaw',         'airport': 'Chopin',                         'code': 'WAW', 'region': 'Europe'},
+            (50.0755,  14.4378): {'city': 'Prague',         'airport': 'Václav Havel',                   'code': 'PRG', 'region': 'Europe'},
+            (45.4642,   9.1900): {'city': 'Milan',          'airport': 'Malpensa',                       'code': 'MXP', 'region': 'Europe'},
+
+            # --- Middle East & North Africa ---
+            (32.0853,  34.7818): {'city': 'Tel Aviv',       'airport': 'Ben Gurion',                     'code': 'TLV', 'region': 'Middle East'},
+            (25.2048,  55.2708): {'city': 'Dubai',          'airport': 'Dubai International',            'code': 'DXB', 'region': 'Middle East'},
+            (25.2854,  51.5310): {'city': 'Doha',           'airport': 'Hamad International',            'code': 'DOH', 'region': 'Middle East'},
+            (24.4539,  54.3773): {'city': 'Abu Dhabi',      'airport': 'Abu Dhabi International',        'code': 'AUH', 'region': 'Middle East'},
+            (30.0444,  31.2357): {'city': 'Cairo',          'airport': 'Cairo International',            'code': 'CAI', 'region': 'Middle East'},
+
+            # --- Asia ---
+            (35.6762, 139.6503): {'city': 'Tokyo',          'airport': 'Narita',                         'code': 'NRT', 'region': 'Asia'},
+            (1.3521,  103.8198): {'city': 'Singapore',      'airport': 'Changi',                         'code': 'SIN', 'region': 'Asia'},
+            (22.3193, 114.1694): {'city': 'Hong Kong',      'airport': 'Hong Kong International',        'code': 'HKG', 'region': 'Asia'},
+            (37.5665, 126.9780): {'city': 'Seoul',          'airport': 'Incheon International',          'code': 'ICN', 'region': 'Asia'},
+            (13.7563, 100.5018): {'city': 'Bangkok',        'airport': 'Suvarnabhumi',                   'code': 'BKK', 'region': 'Asia'},
+            (28.6139,  77.2090): {'city': 'Delhi',          'airport': 'Indira Gandhi International',    'code': 'DEL', 'region': 'Asia'},
+
+            # --- Oceania & Latin America (a few big ones for coverage) ---
+            (-33.8688, 151.2093):{'city': 'Sydney',         'airport': 'Sydney Kingsford Smith',         'code': 'SYD', 'region': 'Oceania'},
+            (-23.5505, -46.6333):{'city': 'São Paulo',      'airport': 'Guarulhos',                      'code': 'GRU', 'region': 'South America'},
         }
+
         
         # Find the nearest airport (simple distance calculation)
         min_distance = float('inf')
@@ -592,7 +644,7 @@ def lambda_handler(event, context):
 
 
 def _handle_chat_request(event, context, headers):
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return {
@@ -629,18 +681,11 @@ def _handle_chat_request(event, context, headers):
 
     conversation_history = response.get('Items', [])[:10]  # Get the last 10 messages
 
-    print("Raw response:", response)
-    print("Type of Items:", type(response.get('Items', [])))
-    print("Items content:", response.get('Items', []))
 
     if len(conversation_history) == 0:
-        print("len of history inside if: ", len(conversation_history))
         add_new_chat_to_db(chat_id, user_id, headers)
-    else:
-        print("Conversation history is NOT empty. Length:", len(conversation_history))
 
     conversation_history = sorted(conversation_history, key=lambda x: x['timestamp'])
-    print("conversation_history after sort", conversation_history)
 
     # Remove unnecessary fields
     for message in conversation_history:
@@ -677,8 +722,6 @@ def _handle_chat_request(event, context, headers):
                 f"lon: {location_context['longitude']:.2f}), but I couldn't identify a nearby major airport. "
                 f"When they ask for flights, you'll need to ask them to specify their departure airport.\n\n"
             )
-    else:
-        print("No location context available for this user")
 
     # Add the system message
     conversation_history.insert(0, {"role": "system",
@@ -722,23 +765,54 @@ def _handle_chat_request(event, context, headers):
     conversation_history.append({"role": "user", "content": user_prompt})
 
     # Call OpenAI API with the conversation history and function descriptions
-    chat_completion = client.chat.completions.create(
-        messages=conversation_history,
-        model="gpt-4o",
-        max_tokens=1000,
-        functions=functionsDescription,
-    )
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=conversation_history,
+            model="gpt-4o",
+            max_tokens=1000,
+            functions=functionsDescription,
+        )
+    except Exception as e:
+        print(f"[handle_chat] OpenAI API error: {str(e)}")
+        return {
+            "statusCode": 500,
+            "headers": headers,
+            "body": json.dumps({"error": f"OpenAI API error: {str(e)}"})
+        }
 
     # Initialize ID collections for response
     collected_flight_ids = []
     collected_hotel_ids = []
 
-    ai_reply = chat_completion.choices[0].message
+    try:
+        ai_reply = chat_completion.choices[0].message
+    except (IndexError, AttributeError) as e:
+        print(f"[handle_chat] OpenAI response parsing error: {str(e)}")
+        return {
+            "statusCode": 500,
+            "headers": headers,
+            "body": json.dumps({"error": f"Invalid OpenAI response format: {str(e)}"})
+        }
+    
     if ai_reply.function_call:
-        func_name = ai_reply.function_call.name
-        function_arguments = json.loads(ai_reply.function_call.arguments)
-        print(f"[handle_chat] AI function call: {func_name}")
-        print(f"[handle_chat] AI function arguments: {function_arguments}")
+        try:
+            func_name = ai_reply.function_call.name
+            function_arguments = json.loads(ai_reply.function_call.arguments)
+        except json.JSONDecodeError as e:
+            print(f"[handle_chat] Function arguments JSON decode error: {str(e)}")
+            return {
+                "statusCode": 500,
+                "headers": headers,
+                "body": json.dumps({"error": f"Invalid function arguments: {str(e)}"})
+            }
+        except AttributeError as e:
+            print(f"[handle_chat] Function call parsing error: {str(e)}")
+            return {
+                "statusCode": 500,
+                "headers": headers,
+                "body": json.dumps({"error": f"Invalid function call format: {str(e)}"})
+            }
+
         params = {
             'user_id': user_id,
             'chat_id': chat_id,
@@ -746,17 +820,15 @@ def _handle_chat_request(event, context, headers):
         }
 
         if func_name == "search_flights":  # Handle flight search
-            print("Function call detected: search_flights")
-            print("Calling search_flights with params:", params)
-            lambda_response = invoke_lambda_http(
-                "https://f2byphzfpwp2tigocurevvgsvy0bkckb.lambda-url.us-east-1.on.aws/", params)
-            lambda_response = ensure_dict(lambda_response)
-            print("Lambda response keys:", list(lambda_response.keys()) if isinstance(lambda_response, dict) else "Not a dict")
-            print("Lambda response: ", lambda_response)
+            try:
+                lambda_response = invoke_lambda_http(
+                    "https://hg7skevcilgzhpzan4rwsnggyy0mleap.lambda-url.us-east-1.on.aws/", params)
+                lambda_response = ensure_dict(lambda_response)
+            except Exception as e:
+                print(f"[handle_chat] Error calling search_flights lambda: {str(e)}")
+                lambda_response = {"data": [], "flightIds": []}
             flight_data = lambda_response.get("data", [])
             flight_ids = lambda_response.get("flightIds", [])
-            print("Extracted flight_data count:", len(flight_data) if isinstance(flight_data, list) else "Not a list")
-            print("Extracted flight_ids:", flight_ids)
             collected_flight_ids.extend(flight_ids)
             formatted_flights_results = (
                 "Summarize the following flights for a non-technical user.\n"
@@ -775,22 +847,19 @@ def _handle_chat_request(event, context, headers):
                 {"role": "system", "content": "No flight options found. Inform the user and ask them to try again."}
             )
 
-        # ========================= NEW: search_hotels branch =========================
         elif func_name == "search_hotels":
-            print("Function call detected: search_hotels")
-            print("Calling search_hotels with params:", params)
-            lambda_response = invoke_lambda_http(
-                "https://3vkgbojnke5vy5a477jvczq5gy0vceks.lambda-url.us-east-1.on.aws/",
-                params
-            )
-            lambda_response = ensure_dict(lambda_response)
-            print("Hotels Lambda response keys:", list(lambda_response.keys()) if isinstance(lambda_response, dict) else "Not a dict")
-            print("Hotels Lambda response:", lambda_response)
+            try:
+                lambda_response = invoke_lambda_http(
+                    "https://hwwsigfrywgdxn57ceh5c7t6my0uwzfa.lambda-url.us-east-1.on.aws/",
+                    params
+                )
+            except Exception as e:
+                print(f"[handle_chat] Error calling search_hotels lambda: {str(e)}")
+                lambda_response = {"data": [], "hotelIds": []}
 
+            lambda_response = ensure_dict(lambda_response)
             hotel_data = lambda_response.get("data", [])
             hotel_ids = lambda_response.get("hotelOfferIds", [])
-            print("Extracted hotel_data count:", len(hotel_data) if isinstance(hotel_data, list) else "Not a list")
-            print("Extracted hotel_ids:", hotel_ids)
             collected_hotel_ids.extend(hotel_ids)
             formatted_hotels_results = (
                 "Summarize the following hotel offers for a non-technical traveler.\n"
@@ -808,24 +877,20 @@ def _handle_chat_request(event, context, headers):
                 {"role": "system", "content": "No hotel options found. Inform the user and offer to change dates or filters."}
             )
         
-        # ========================= NEW: parse_relative_date branch =========================
         elif func_name == "parse_relative_date":
-            print("Function call detected: parse_relative_date")
-            print("Parsing relative date with arguments:", function_arguments)
             
             relative_expression = function_arguments.get('relative_expression', '')
             context = function_arguments.get('context', '')
             
             # Call our date parsing function
             result = parse_relative_date_expression(relative_expression, context)
-            
+        
             if result['success']:
                 formatted_date_result = (
                     f"Date parsing successful: '{relative_expression}' = {result['date']}\n"
                     f"Explanation: {result['message']}\n"
                     f"Use this date ({result['date']}) in your response and for any subsequent flight or hotel searches."
                 )
-                print(f"Date parsing success: {result['date']}")
             else:
                 formatted_date_result = (
                     f"Date parsing failed for '{relative_expression}': {result['message']}\n"
@@ -839,37 +904,53 @@ def _handle_chat_request(event, context, headers):
         
         # ============================================================================
         # Re-ask the model to write the final user-facing answer
-        chat_completion = client.chat.completions.create(
-            messages=conversation_history,
-            model="gpt-4o",
-            max_tokens=1000,
-        )
-        ai_reply = chat_completion.choices[0].message
+        try:
+            chat_completion = client.chat.completions.create(
+                messages=conversation_history,
+                model="gpt-4o",
+                max_tokens=1000,
+            )
+            ai_reply = chat_completion.choices[0].message
+        except Exception as e:
+            print(f"[handle_chat] Second OpenAI API call error: {str(e)}")
+            return {
+                "statusCode": 500,
+                "headers": headers,
+                "body": json.dumps({"error": f"OpenAI API error in final response: {str(e)}"})
+            }
 
     response_content = ai_reply.content
 
     # Save user prompt
-    chat_history_table.put_item(
-        Item={
-            'user_id': user_id,
-            'timestamp': int(time.time() * 1000),
-            'role': 'user',
-            'content': user_prompt,
-            'chat_id': str(chat_id)
-        }
-    )
-
-    if ai_reply.content:
-        # Save assistant reply
+    try:
         chat_history_table.put_item(
             Item={
                 'user_id': user_id,
                 'timestamp': int(time.time() * 1000),
-                'role': 'assistant',
-                'content': response_content,
+                'role': 'user',
+                'content': user_prompt,
                 'chat_id': str(chat_id)
             }
         )
+    except Exception as e:
+        print(f"[handle_chat] Error saving user message: {str(e)}")
+        # Continue execution - this is not critical enough to fail the request
+
+    if ai_reply.content:
+        # Save assistant reply
+        try:
+            chat_history_table.put_item(
+                Item={
+                    'user_id': user_id,
+                    'timestamp': int(time.time() * 1000),
+                    'role': 'assistant',
+                    'content': response_content,
+                    'chat_id': str(chat_id)
+                }
+            )
+        except Exception as e:
+            print(f"[handle_chat] Error saving assistant message: {str(e)}")
+            # Continue execution - this is not critical enough to fail the request
 
     # Title generation: on powers of 4 user messages (1, 4, 16, ...)
     updated_title = ""
@@ -891,9 +972,6 @@ def _handle_chat_request(event, context, headers):
         # Non-fatal if title update fails
         updated_title = ""
 
-    print("[handle_chat] Final response flight_ids:", collected_flight_ids)
-    print("[handle_chat] Final response hotel_ids:", collected_hotel_ids)
-    
     return {
         "statusCode": 200,
         "headers": headers,

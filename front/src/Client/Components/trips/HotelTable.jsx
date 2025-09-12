@@ -3,7 +3,7 @@ import { Badge } from '../ui/badge.jsx';
 import { Hotel, CheckCircle, X } from 'lucide-react';
 import {
     formatCurrency,
-    convertToUserCurrency,
+    convertToUserCurrencyAmount,
     getUserPreferredCurrency,
 } from '../../utils/currencyConverter.js';
 
@@ -163,7 +163,7 @@ export default function HotelTable({
                                                           const currency =
                                                               priceMatch[2];
                                                           return formatCurrency(
-                                                              convertToUserCurrency(
+                                                              convertToUserCurrencyAmount(
                                                                   amount,
                                                                   currency
                                                               ),
@@ -197,7 +197,7 @@ export default function HotelTable({
                                                       const currency =
                                                           priceMatch[2];
                                                       return formatCurrency(
-                                                          convertToUserCurrency(
+                                                          convertToUserCurrencyAmount(
                                                               amount,
                                                               currency
                                                           ),

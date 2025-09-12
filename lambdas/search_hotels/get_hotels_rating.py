@@ -1,10 +1,8 @@
 import json
 import os
 import time
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 import boto3
-from boto3.dynamodb.conditions import Key
 import requests
 from botocore.exceptions import ClientError
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -118,23 +116,14 @@ def call_amadeus_hotel_ratings(hotel_ids: List[str], token: str) -> Dict:
         
         # Build the full URL with query parameters
         url = f"{HOTEL_RATINGS_ENDPOINT}?hotelIds={hotel_ids_param}"
-        
-        print(f"Calling Amadeus Hotel Ratings API: {url}")
-        
         response = requests.get(
             url,
             headers=headers,
             timeout=HTTP_TIMEOUT_SECONDS
         )
         
-        print(f"Amadeus API response status: {response.status_code}")
-        print(f"Amadeus API response headers: {dict(response.headers)}")
-        
-        response.raise_for_status()
-        
+        response.raise_for_status()        
         json_response = response.json()
-        print(f"Amadeus API response body: {json.dumps(json_response, indent=2)}")
-        
         return json_response
         
     except requests.exceptions.HTTPError as e:
@@ -163,19 +152,11 @@ def process_hotel_ratings_batch(hotel_batch: List[Tuple[str, str]], token: str) 
         # Call Amadeus API
         amadeus_response = call_amadeus_hotel_ratings(hotel_ids, token)
         
-        print(f"Processing batch response for hotels: {hotel_ids}")
-        print(f"Amadeus response keys: {list(amadeus_response.keys()) if amadeus_response else 'None'}")
-        
         # Create mapping of hotelId to rating data
         rating_data = {}
         if 'data' in amadeus_response and amadeus_response['data']:
-            print(f"Found 'data' in response with {len(amadeus_response['data'])} items")
             for rating in amadeus_response['data']:
-                print(f"Rating item keys: {list(rating.keys()) if rating else 'None'}")
-                print(f"Rating item hotelId: {rating.get('hotelId', 'MISSING')}")
                 rating_data[rating.get('hotelId')] = rating
-        else:
-            print("No 'data' key found or data array is empty in Amadeus response")
         
         # Check for warnings (hotels not found in database)
         warnings = amadeus_response.get('warnings', [])
@@ -189,9 +170,6 @@ def process_hotel_ratings_batch(hotel_batch: List[Tuple[str, str]], token: str) 
                         not_found_hotels.add(hotel_id_not_found)
                         print(f"Hotel {hotel_id_not_found} not found in Amadeus ratings database")
         
-        print(f"Rating data mapping: {list(rating_data.keys())}")
-        print(f"Hotels not found in ratings DB: {list(not_found_hotels)}")
-        
         # Build response pairing hotel_id with rating data
         results = []
         for hotel_id, hotelId in hotel_batch:
@@ -200,7 +178,6 @@ def process_hotel_ratings_batch(hotel_batch: List[Tuple[str, str]], token: str) 
             
             if rating_info:
                 # Hotel has rating data
-                print(f"Hotel {hotel_id} (hotelId: {hotelId}) -> has rating data")
                 results.append({
                     'hotel_id': hotel_id,
                     'hotelId': hotelId,
@@ -209,7 +186,6 @@ def process_hotel_ratings_batch(hotel_batch: List[Tuple[str, str]], token: str) 
                 })
             elif is_not_found:
                 # Hotel explicitly not found in Amadeus ratings database
-                print(f"Hotel {hotel_id} (hotelId: {hotelId}) -> not found in ratings DB, using fallback")
                 results.append({
                     'hotel_id': hotel_id,
                     'hotelId': hotelId,
@@ -275,7 +251,6 @@ def lambda_handler(event, context):
         ]
     }
     """
-    print(f"Lambda invoked with event: {json.dumps(event)}")
     
     # CORS headers
     cors_headers = {
@@ -305,8 +280,6 @@ def lambda_handler(event, context):
                 })
             }
         
-        print(f"Processing ratings for {len(hotels)} hotels")
-        
         # Get Amadeus token
         token = get_amadeus_token()
         if not token:
@@ -326,8 +299,6 @@ def lambda_handler(event, context):
             hotel_tuples = [(hotel['hotel_id'], hotel['hotelId']) for hotel in batch]
             hotel_batches.append(hotel_tuples)
         
-        print(f"Created {len(hotel_batches)} batches for API calls")
-        
         # Process batches concurrently
         all_results = []
         with ThreadPoolExecutor(max_workers=MAX_CONCURRENT_REQUESTS) as executor:
@@ -340,13 +311,9 @@ def lambda_handler(event, context):
                 batch_results = future.result()
                 all_results.extend(batch_results)
         
-        print(f"Successfully processed ratings for {len(all_results)} hotels")
-        
         # Count successes and failures
         successful = sum(1 for result in all_results if result['success'])
         failed = len(all_results) - successful
-        
-        print(f"Rating results: {successful} successful, {failed} failed")
         
         return {
             'statusCode': 200,

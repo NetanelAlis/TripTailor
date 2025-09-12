@@ -19,10 +19,7 @@ trips_table  = dynamodb.Table("trip")       # trip summary
 
 AMADEUS_TOKEN_URL = "https://test.api.amadeus.com/v1/security/oauth2/token"
 AMADEUS_HOTEL_ORDER_URL = "https://test.api.amadeus.com/v2/booking/hotel-orders"
-
-# Using test environment with sandbox mode only
-
-CLIENT_ID     = os.environ.get("AMADEUS_CLIENT_ID")
+CLIENT_ID = os.environ.get("AMADEUS_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("AMADEUS_CLIENT_SECRET")
 
 # ========= OAuth helpers =========
@@ -83,7 +80,7 @@ def build_hotel_order_payload(
     """Build payload per Amadeus hotel-order schema."""
     guests: List[Dict[str, Any]] = []
     for i, g in enumerate(guests_ui, start=1):
-        title = (g.get("gender")).upper()
+        title = (g.get("gender"))
         if title == "MALE":
             title = "MR"
         elif title == "FEMALE":
@@ -160,7 +157,6 @@ def extract_accepted_vendor_code(hotel_pricing_data: dict) -> str:
                 credit_cards = accepted_payments.get("creditCards", [])
                 
                 if credit_cards:
-                    print(f"DEBUG: Found accepted credit cards: {credit_cards}")
                     # Return the first accepted card type
                     return credit_cards[0]
             
@@ -173,10 +169,8 @@ def extract_accepted_vendor_code(hotel_pricing_data: dict) -> str:
                 credit_cards = accepted_payments.get("creditCards", [])
                 
                 if credit_cards:
-                    print(f"DEBUG: Found accepted credit cards in policies: {credit_cards}")
                     return credit_cards[0]
         
-        print("DEBUG: No accepted credit cards found, defaulting to VI (Visa)")
         return "VI"  # Default to Visa
         
     except Exception as e:
@@ -189,7 +183,6 @@ def call_create_hotel_order(token: str, payload: Dict[str, Any]) -> Dict[str, An
     """Returns a fake booking order for sandbox testing."""
     oid = f"SBX-{hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:12]}"
     now_iso = datetime.now(timezone.utc).isoformat()
-    print("DEBUG: SANDBOX mode — returning fake booking", oid)
     return {
         "data": {
             "id": oid,
@@ -219,9 +212,6 @@ def upsert_booking_into_hotels_table(
     
     # Store the complete booking response (different structure from regular hotel offers)
     # The booking response has a different structure than regular hotel search responses
-    print(f"DEBUG: Storing complete booking response for {triptailor_hotel_id}")
-    print(f"DEBUG: Booking response structure: {list(data.keys()) if isinstance(data, dict) else 'Not a dict'}")
-
     # Since the table has composite key (hotelOfferId + timestamp), we need to find the existing item first
     try:
         # Query for existing hotel items (there might be multiple with different timestamps)
@@ -238,9 +228,8 @@ def upsert_booking_into_hotels_table(
             existing_item = items[0]
             existing_timestamp = existing_item["timestamp"]
             
-            print(f"DEBUG: Found existing hotel {triptailor_hotel_id} with timestamp {existing_timestamp}, updating...")
-            
             # Store the complete booking response (different structure than regular hotel offers)
+            # Note: No TTL attribute for booked hotels - they should remain permanently
             hotels_table.update_item(
                 Key={
                     "hotelOfferId": triptailor_hotel_id,
@@ -264,12 +253,9 @@ def upsert_booking_into_hotels_table(
                     ":resp": booking_resp,
                 },
             )
-            print(f"DEBUG: Hotels[{triptailor_hotel_id}] updated with booked=true, ref={booking_ref}")
         else:
-            # No existing item, create new one
-            print(f"DEBUG: Hotel {triptailor_hotel_id} doesn't exist, creating new item")
-            
             # Store complete booking response for new hotel
+            # Note: No TTL attribute for booked hotels - they should remain permanently
             hotel_item = {
                 'hotelOfferId': triptailor_hotel_id,
                 'timestamp': now_ms,  # Sort key
@@ -281,7 +267,6 @@ def upsert_booking_into_hotels_table(
             }
             
             hotels_table.put_item(Item=hotel_item)
-            print(f"DEBUG: Hotels[{triptailor_hotel_id}] created with booked=true, hotelPricingData={hotel_pricing_data}, bookingResponse={booking_resp}")
             
     except Exception as e:
         print(f"ERROR: Error updating hotel {triptailor_hotel_id}: {e}")
@@ -361,10 +346,6 @@ def _handle_hotel_booking(event, headers):
             available_vendor_codes = booking_payload.get("availableVendorCodes", ["VI"])
             hotel_pricing_data = booking_payload.get("hotelPricingData")
             
-            print(f"DEBUG: hotel_pricing_data: {hotel_pricing_data}")
-            print(f"DEBUG: original_triptailor_hotel_ids: {original_triptailor_hotel_ids}")
-            print(f"DEBUG: Processing hotel booking {i+1}/{len(booking_payloads)}: {offer_id}")
-            
             if not offer_id:
                 raise ValueError(f"Missing hotelOfferId in booking payload {i+1}")
             if not guests_input:
@@ -375,8 +356,6 @@ def _handle_hotel_booking(event, headers):
             if accepted_vendor_code not in available_vendor_codes and available_vendor_codes:
                 accepted_vendor_code = available_vendor_codes[0]
             
-            print(f"DEBUG: Using vendor code: {accepted_vendor_code}")
-
             payload = build_hotel_order_payload(
                 offer_id=offer_id,
                 guests_ui=guests_input,
@@ -385,14 +364,12 @@ def _handle_hotel_booking(event, headers):
 
             # Create hotel booking order (sandbox mode)
             order_resp = call_create_hotel_order(token, payload)
-            print(f"DEBUG: Hotel order response: {order_resp}")
             
             # Generate hotel ID and save to database (mark as booked to avoid ID conflicts)
             new_hotel_id = _stable_hotel_id_for_trip(offer_id, is_booked=True)
             
             # Save hotel booking to database (similar to flight order pattern)
             upsert_booking_into_hotels_table(order_resp, new_hotel_id, hotel_pricing_data)
-            print(f"DEBUG: Hotel {new_hotel_id} saved successfully to DynamoDB")
             
             new_hotel_ids.append(new_hotel_id)
             
@@ -400,17 +377,8 @@ def _handle_hotel_booking(event, headers):
             if i < len(original_triptailor_hotel_ids):
                 original_triptailor_id = original_triptailor_hotel_ids[i]
                 hotel_id_mapping[original_triptailor_id] = new_hotel_id
-                print(f"DEBUG: Mapped TripTailor ID {original_triptailor_id} -> new ID {new_hotel_id}")
-            
-            print(f"DEBUG: Hotel {i+1} processed - ID: {new_hotel_id}")
-        
-        # Trip table updates will now be handled by update_trip_card lambda
-        print("DEBUG: Skipping trip table update - will be handled by update_trip_card lambda")
-        print(f"DEBUG: New hotel IDs generated: {new_hotel_ids}")
-        print(f"DEBUG: Hotel ID mapping: {hotel_id_mapping}")
-        print(f"DEBUG: All hotels have status: 'booked'")
-        
-        # Build simplified response - return ID mapping for trip card update
+                    
+                # Build simplified response - return ID mapping for trip card update
         result_payload = {
             "success": True,
             "message": "Hotel booking completed successfully", 
@@ -418,17 +386,6 @@ def _handle_hotel_booking(event, headers):
             "hotelIdMapping": hotel_id_mapping,  # originalId -> newId mapping
             "totalHotels": len(new_hotel_ids)
         }
-        
-        print(f"DEBUG: Final response prepared with {len(new_hotel_ids)} hotel IDs")
-        
-        # Summary of what was saved to the database
-        print("=== DATABASE SAVE SUMMARY ===")
-        print(f"DEBUG: Complete hotel-offer objects saved to hotels table: {len(new_hotel_ids)}")
-        for i, hotel_id in enumerate(new_hotel_ids):
-            print(f"DEBUG:   Hotel {i+1}: {hotel_id} (status: booked)")
-        print(f"DEBUG: Trip card update: Will be handled by update_trip_card lambda")
-        print(f"DEBUG: Total hotels booked: {len(new_hotel_ids)}")
-        print("=== BOOK HOTEL LAMBDA SUCCESS ===")
         
         return {"statusCode": 200, "headers": headers, "body": json.dumps(result_payload)}
 
