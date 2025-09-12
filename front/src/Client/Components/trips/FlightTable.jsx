@@ -1,11 +1,10 @@
 import React from 'react';
 import { Badge } from '../ui/badge.jsx';
-// Note: Base44 used a Checkbox component; we'll use a native input for now
 import { Plane, CheckCircle, X } from 'lucide-react';
 import { getAirlineName } from '../../utils/airlineCodes.js';
 import {
     formatCurrency,
-    convertToUserCurrency,
+    convertToUserCurrencyAmount,
     getUserPreferredCurrency,
 } from '../../utils/currencyConverter.js';
 
@@ -221,7 +220,7 @@ export default function FlightTable({
                                                       const currency =
                                                           priceMatch[2];
                                                       return formatCurrency(
-                                                          convertToUserCurrency(
+                                                          convertToUserCurrencyAmount(
                                                               amount,
                                                               currency
                                                           ),

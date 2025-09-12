@@ -17,8 +17,9 @@ hotels_table = dynamodb.Table("Hotels")
 def _cors_headers():
     return {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "OPTIONS,POST",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Credentials": "false",
     }
 
 
@@ -390,269 +391,235 @@ def lambda_handler(event, context):
     # Pre-flight CORS
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return {"statusCode": 200, "headers": headers, "body": ""}
-
-    # Accept both API Gateway/Function URL proxy events (body as JSON string)
-    # and direct Lambda console tests (top-level JSON object)
-    body = {}
-    raw_body = event.get("body") if isinstance(event, dict) else None
-    if isinstance(raw_body, (str, bytes)):
-        try:
-            body = json.loads(raw_body)
-        except json.JSONDecodeError:
-            return _bad_request("Invalid JSON body")
-    elif isinstance(event, dict):
-        # Fallback: allow direct invocation with fields at the top level
-        # Only adopt this if it looks like a direct test event
-        candidate_keys = {"user_id", "chat_id", "flight_ids", "hotel_ids"}
-        if any(k in event for k in candidate_keys):
-            body = {k: event.get(k) for k in candidate_keys if k in event}
-        else:
-            body = {}
-
-    user_id = (body.get("user_id") or "").strip()
-    chat_id = (body.get("chat_id") or "").strip()
-    if not user_id or not chat_id:
-        return _bad_request("user_id and chat_id are required")
-
-    flights = body.get("flight_ids")  # optional list
-    hotels = body.get("hotel_ids")    # optional list
     
-    # New: Support for status information
-    flight_statuses = body.get("flight_statuses", {})  # {flight_id: status} mapping
-    hotel_statuses = body.get("hotel_statuses", {})    # {hotel_id: status} mapping
-    
-    # New: Support for ID mapping (originalId -> newId) for replacement
-    flight_id_mapping = body.get("flight_id_mapping", {})  # {original_id: new_id} mapping
-    hotel_id_mapping = body.get("hotel_id_mapping", {})    # {original_id: new_id} mapping
-    
-    if flights is not None and not isinstance(flights, list):
-        return _bad_request("flight_ids must be a list if provided")
-    if hotels is not None and not isinstance(hotels, list):
-        return _bad_request("hotel_ids must be a list if provided")
-    if not isinstance(flight_statuses, dict):
-        return _bad_request("flight_statuses must be a dict if provided")
-    if not isinstance(hotel_statuses, dict):
-        return _bad_request("hotel_statuses must be a dict if provided")
-    if not isinstance(flight_id_mapping, dict):
-        return _bad_request("flight_id_mapping must be a dict if provided")
-    if not isinstance(hotel_id_mapping, dict):
-        return _bad_request("hotel_id_mapping must be a dict if provided")
-
     try:
-        history_items = _query_chat_history(user_id, chat_id)
-    except Exception as e:
-        return _server_error(f"Failed to read history: {str(e)}")
-
-    # Log inputs
-    print("[update_trip_card] INPUT user_id:", user_id, "chat_id:", chat_id)
-    print("[update_trip_card] INPUT candidate flight_ids:", flights, "hotel_ids:", hotels)
-    print("[update_trip_card] INPUT flight_statuses:", flight_statuses, "hotel_statuses:", hotel_statuses)
-    print("[update_trip_card] INPUT flight_id_mapping:", flight_id_mapping, "hotel_id_mapping:", hotel_id_mapping)
-    print("[update_trip_card] history_items count:", len(history_items))
-
-    # Read current trip record to support add/keep/remove decisions
-    try:
-        trip_key = {"UserAndChatID": f"{user_id}:{chat_id}"}
-        current_item = trips_table.get_item(Key=trip_key).get("Item", {})
-        existing_flights_raw = current_item.get("flight_tuples") or current_item.get("flights") or []
-        existing_hotels_raw = current_item.get("hotel_tuples") or current_item.get("hotels") or []
-    except Exception:
-        existing_flights_raw, existing_hotels_raw = [], []
-
-    # Normalize stored tuples which may be list-of-lists [[id,status],...] or list of dicts
-    def _normalize_tuples_to_dicts(items):
-        out = []
-        if not isinstance(items, list):
-            return out
-        for it in items:
+        # Accept both API Gateway/Function URL proxy events (body as JSON string)
+        # and direct Lambda console tests (top-level JSON object)
+        body = {}
+        raw_body = event.get("body") if isinstance(event, dict) else None
+        if isinstance(raw_body, (str, bytes)):
             try:
-                if isinstance(it, dict) and it.get("id") is not None:
-                    out.append({"id": str(it.get("id")), "status": str(it.get("status", "available"))})
-                elif isinstance(it, (list, tuple)) and len(it) >= 1:
-                    _id = str(it[0])
-                    _status = str(it[1]) if len(it) > 1 and it[1] is not None else "available"
-                    out.append({"id": _id, "status": _status})
-            except Exception:
-                continue
-        return out
+                body = json.loads(raw_body)
+            except json.JSONDecodeError:
+                return _bad_request("Invalid JSON body")
+        elif isinstance(event, dict):
+            # Fallback: allow direct invocation with fields at the top level
+            # Only adopt this if it looks like a direct test event
+            candidate_keys = {"user_id", "chat_id", "flight_ids", "hotel_ids"}
+            if any(k in event for k in candidate_keys):
+                body = {k: event.get(k) for k in candidate_keys if k in event}
+            else:
+                body = {}
 
-    existing_flights = _normalize_tuples_to_dicts(existing_flights_raw)
-    existing_hotels = _normalize_tuples_to_dicts(existing_hotels_raw)
+        user_id = (body.get("user_id") or "").strip()
+        chat_id = (body.get("chat_id") or "").strip()
+        if not user_id or not chat_id:
+            return _bad_request("user_id and chat_id are required")
 
-    # Separate existing vs new items for different handling
-    existing_f_ids = [str(x.get("id")) for x in existing_flights if isinstance(x, dict) and x.get("id")]
-    existing_h_ids = [str(x.get("id")) for x in existing_hotels if isinstance(x, dict) and x.get("id")]
-    candidate_f_ids = [str(fid) for fid in (flights or [])]
-    candidate_h_ids = [str(hid) for hid in (hotels or [])]
-    
-    print("[update_trip_card] existing_f_ids:", existing_f_ids)
-    print("[update_trip_card] existing_h_ids:", existing_h_ids) 
-    print("[update_trip_card] new candidate flight_ids:", candidate_f_ids)
-    print("[update_trip_card] new candidate hotel_ids:", candidate_h_ids)
-    
-    # Compact fetch ONLY existing items for LLM decisions (user has seen these)
-    existing_compact_flights = [_fetch_compact_flight(fid) for fid in existing_f_ids]
-    existing_compact_hotels = [_fetch_compact_hotel(hid) for hid in existing_h_ids]
+        flights = body.get("flight_ids")  # optional list
+        hotels = body.get("hotel_ids")    # optional list
+        
+        # New: Support for status information
+        flight_statuses = body.get("flight_statuses", {})  # {flight_id: status} mapping
+        hotel_statuses = body.get("hotel_statuses", {})    # {hotel_id: status} mapping
+        
+        # New: Support for ID mapping (originalId -> newId) for replacement
+        flight_id_mapping = body.get("flight_id_mapping", {})  # {original_id: new_id} mapping
+        hotel_id_mapping = body.get("hotel_id_mapping", {})    # {original_id: new_id} mapping
+        
+        if flights is not None and not isinstance(flights, list):
+            return _bad_request("flight_ids must be a list if provided")
+        if hotels is not None and not isinstance(hotels, list):
+            return _bad_request("hotel_ids must be a list if provided")
+        if not isinstance(flight_statuses, dict):
+            return _bad_request("flight_statuses must be a dict if provided")
+        if not isinstance(hotel_statuses, dict):
+            return _bad_request("hotel_statuses must be a dict if provided")
+        if not isinstance(flight_id_mapping, dict):
+            return _bad_request("flight_id_mapping must be a dict if provided")
+        if not isinstance(hotel_id_mapping, dict):
+            return _bad_request("hotel_id_mapping must be a dict if provided")
 
-    # LLM decides only on existing items (user has had time to give feedback)
-    combined = _analyze_history_and_decide(history_items, existing_compact_flights, existing_compact_hotels)
-    print("[update_trip_card] combined raw:", combined.get("_raw", ""))
-    trip_data = {k: combined.get(k) for k in ("destinations", "dates", "summary")}
-    decisions = {
-        "flight_decisions": combined.get("flight_decisions", []),
-        "hotel_decisions": combined.get("hotel_decisions", []),
-    }
-    print("[update_trip_card] extracted trip_data:", json.dumps(trip_data))
-    print("[update_trip_card] raw decisions:", json.dumps(decisions))
-
-    # Apply LLM decisions only to existing items
-    kept_existing_f_ids, kept_existing_h_ids = _apply_llm_decisions_to_ids(existing_f_ids, existing_h_ids, decisions)
-    
-    # Auto-add new candidate items (user hasn't seen them yet, so add them for user review)
-    final_f_ids = list({*kept_existing_f_ids, *candidate_f_ids})
-    final_h_ids = list({*kept_existing_h_ids, *candidate_h_ids})
-    
-    # Apply ID mapping: replace original IDs with new IDs
-    if flight_id_mapping:
-        print(f"[update_trip_card] Applying flight ID mapping: {flight_id_mapping}")
-        final_f_ids = [flight_id_mapping.get(fid, fid) for fid in final_f_ids]
-        # Also update existing flights list for status preservation
-        for existing_flight in existing_flights:
-            if isinstance(existing_flight, dict) and existing_flight.get("id") in flight_id_mapping:
-                old_id = existing_flight["id"]
-                new_id = flight_id_mapping[old_id]
-                existing_flight["id"] = new_id
-                print(f"[update_trip_card] Mapped existing flight {old_id} -> {new_id}")
-    
-    if hotel_id_mapping:
-        print(f"[update_trip_card] Applying hotel ID mapping: {hotel_id_mapping}")
-        final_h_ids = [hotel_id_mapping.get(hid, hid) for hid in final_h_ids]
-        # Also update existing hotels list for status preservation
-        for existing_hotel in existing_hotels:
-            if isinstance(existing_hotel, dict) and existing_hotel.get("id") in hotel_id_mapping:
-                old_id = existing_hotel["id"]
-                new_id = hotel_id_mapping[old_id]
-                existing_hotel["id"] = new_id
-                print(f"[update_trip_card] Mapped existing hotel {old_id} -> {new_id}")
-    
-    print("[update_trip_card] LLM decisions on existing:", json.dumps({
-        "flight_decisions": decisions.get("flight_decisions", []),
-        "hotel_decisions": decisions.get("hotel_decisions", []),
-    }))
-    print("[update_trip_card] kept_existing_f_ids:", kept_existing_f_ids)
-    print("[update_trip_card] kept_existing_h_ids:", kept_existing_h_ids)
-    print("[update_trip_card] final_f_ids (after mapping):", final_f_ids)
-    print("[update_trip_card] final_h_ids (after mapping):", final_h_ids)
-
-    # Infer statuses from DB items (LLM does not decide statuses)
-    # Upgrade/override status for any item we keep, but preserve existing statuses from trip table
-    f_idx = {fid: {"id": fid, "status": "available"} for fid in final_f_ids}
-    h_idx = {hid: {"id": hid, "status": "available"} for hid in final_h_ids}
-    
-    # First, preserve existing statuses from trip table (especially "booked")
-    for existing_flight in existing_flights:
-        if isinstance(existing_flight, dict) and existing_flight.get("id") in f_idx:
-            existing_status = existing_flight.get("status", "available")
-            if existing_status.lower() == "booked":
-                f_idx[existing_flight["id"]]["status"] = "booked"
-                print(f"[update_trip_card] Preserving existing 'booked' status for flight {existing_flight['id']}")
-    
-    for existing_hotel in existing_hotels:
-        if isinstance(existing_hotel, dict) and existing_hotel.get("id") in h_idx:
-            existing_status = existing_hotel.get("status", "available")
-            if existing_status.lower() == "booked":
-                h_idx[existing_hotel["id"]]["status"] = "booked"
-                print(f"[update_trip_card] Preserving existing 'booked' status for hotel {existing_hotel['id']}")
-    
-    # Second, apply provided statuses from the request (these override existing statuses)
-    for fid, provided_status in flight_statuses.items():
-        if fid in f_idx and provided_status:
-            f_idx[fid]["status"] = str(provided_status)
-            print(f"[update_trip_card] Applied provided status '{provided_status}' for flight {fid}")
-    
-    for hid, provided_status in hotel_statuses.items():
-        if hid in h_idx and provided_status:
-            h_idx[hid]["status"] = str(provided_status)
-            print(f"[update_trip_card] Applied provided status '{provided_status}' for hotel {hid}")
-    
-    # Now infer statuses for items that don't have a status yet (using "available" as default)
-    for fid in list(f_idx.keys()):
-        # Skip if we already have a meaningful status
-        if f_idx[fid]["status"] not in ["available", "unavailable"]:
-            continue
-            
         try:
-            res = flights_table.query(
-                KeyConditionExpression=Key("flightId").eq(fid),
-                ScanIndexForward=False,
-                Limit=1
-            )
-            items = res.get("Items", [])
-            db_root = items[0] if items else {}
-            db = db_root.get("flightDetails", {})
-            f_idx[fid]["status"] = _infer_flight_status_from_item(db, f_idx[fid]["status"])
-        except Exception:
-            pass
-    
-    for hid in list(h_idx.keys()):
-        # Skip if we already have a meaningful status
-        if h_idx[hid]["status"] not in ["available", "unavailable"]:
-            continue
-            
-        try:
-            res = hotels_table.query(
-                KeyConditionExpression=Key("hotelOfferId").eq(hid),
-                ScanIndexForward=False,
-                Limit=1
-            )
-            items = res.get("Items", [])
-            db_root = items[0] if items else {}
-            db = db_root.get("hotelOffersDetails", {})
-            h_idx[hid]["status"] = _infer_hotel_status_from_item(db, h_idx[hid]["status"])
-        except Exception:
-            pass
-    updated_flights = list(f_idx.values())
-    updated_hotels = list(h_idx.values())
-    print("[update_trip_card] updated_flights (dicts):", updated_flights)
-    print("[update_trip_card] updated_hotels (dicts):", updated_hotels)
+            history_items = _query_chat_history(user_id, chat_id)
+        except Exception as e:
+            return _server_error(f"Failed to read history: {str(e)}")
 
-    # Upsert into trips table
-    try:
-        # Store tuple lists under canonical keys
-        trip_data_to_write = dict(trip_data)
-        # Convert to list-of-lists [[id,status], ...] for DynamoDB compatibility
-        def _dicts_to_list_of_lists(items):
+        # Read current trip record to support add/keep/remove decisions
+        try:
+            trip_key = {"UserAndChatID": f"{user_id}:{chat_id}"}
+            current_item = trips_table.get_item(Key=trip_key).get("Item", {})
+            existing_flights_raw = current_item.get("flight_tuples") or current_item.get("flights") or []
+            existing_hotels_raw = current_item.get("hotel_tuples") or current_item.get("hotels") or []
+        except Exception:
+            existing_flights_raw, existing_hotels_raw = [], []
+
+        # Normalize stored tuples which may be list-of-lists [[id,status],...] or list of dicts
+        def _normalize_tuples_to_dicts(items):
             out = []
+            if not isinstance(items, list):
+                return out
             for it in items:
-                _id = it.get("id") if isinstance(it, dict) else None
-                if _id is None:
+                try:
+                    if isinstance(it, dict) and it.get("id") is not None:
+                        out.append({"id": str(it.get("id")), "status": str(it.get("status", "available"))})
+                    elif isinstance(it, (list, tuple)) and len(it) >= 1:
+                        _id = str(it[0])
+                        _status = str(it[1]) if len(it) > 1 and it[1] is not None else "available"
+                        out.append({"id": _id, "status": _status})
+                except Exception:
                     continue
-                _status = it.get("status", "available") if isinstance(it, dict) else "available"
-                out.append([str(_id), str(_status)])
             return out
 
-        trip_data_to_write["flight_tuples"] = _dicts_to_list_of_lists(updated_flights)
-        trip_data_to_write["hotel_tuples"] = _dicts_to_list_of_lists(updated_hotels)
-        last_modified = datetime.now(timezone.utc).isoformat()
-        print("[update_trip_card] writing item:", json.dumps({
-            "UserAndChatID": f"{user_id}:{chat_id}",
-            "last modified": last_modified,
-            "destinations": trip_data_to_write.get("destinations", []),
-            "dates": trip_data_to_write.get("dates", ""),
-            "summary": trip_data_to_write.get("summary", ""),
-            "flight_tuples": trip_data_to_write.get("flight_tuples", []),
-            "hotel_tuples": trip_data_to_write.get("hotel_tuples", []),
-        }))
-        _upsert_trip(user_id, chat_id, trip_data_to_write, flights, hotels, last_modified)
-    except Exception as e:
-        return _server_error(f"Failed to upsert trip: {str(e)}")
+        existing_flights = _normalize_tuples_to_dicts(existing_flights_raw)
+        existing_hotels = _normalize_tuples_to_dicts(existing_hotels_raw)
 
-    return {
-        "statusCode": 200,
-        "headers": headers,
-        "body": json.dumps({
-            "success": True,
-            "UserAndChatID": f"{user_id}:{chat_id}",
-            "last_modified": last_modified,
-        }),
-    }
+        # Separate existing vs new items for different handling
+        existing_f_ids = [str(x.get("id")) for x in existing_flights if isinstance(x, dict) and x.get("id")]
+        existing_h_ids = [str(x.get("id")) for x in existing_hotels if isinstance(x, dict) and x.get("id")]
+        candidate_f_ids = [str(fid) for fid in (flights or [])]
+        candidate_h_ids = [str(hid) for hid in (hotels or [])]
+        
+        # Compact fetch ONLY existing items for LLM decisions (user has seen these)
+        existing_compact_flights = [_fetch_compact_flight(fid) for fid in existing_f_ids]
+        existing_compact_hotels = [_fetch_compact_hotel(hid) for hid in existing_h_ids]
+
+        # LLM decides only on existing items (user has had time to give feedback)
+        combined = _analyze_history_and_decide(history_items, existing_compact_flights, existing_compact_hotels)
+        trip_data = {k: combined.get(k) for k in ("destinations", "dates", "summary")}
+        decisions = {
+            "flight_decisions": combined.get("flight_decisions", []),
+            "hotel_decisions": combined.get("hotel_decisions", []),
+        }
+
+        # Apply LLM decisions only to existing items
+        kept_existing_f_ids, kept_existing_h_ids = _apply_llm_decisions_to_ids(existing_f_ids, existing_h_ids, decisions)
+        
+        # Auto-add new candidate items (user hasn't seen them yet, so add them for user review)
+        final_f_ids = list({*kept_existing_f_ids, *candidate_f_ids})
+        final_h_ids = list({*kept_existing_h_ids, *candidate_h_ids})
+        
+        # Apply ID mapping: replace original IDs with new IDs
+        if flight_id_mapping:
+            final_f_ids = [flight_id_mapping.get(fid, fid) for fid in final_f_ids]
+            # Also update existing flights list for status preservation
+            for existing_flight in existing_flights:
+                if isinstance(existing_flight, dict) and existing_flight.get("id") in flight_id_mapping:
+                    old_id = existing_flight["id"]
+                    new_id = flight_id_mapping[old_id]
+                    existing_flight["id"] = new_id
+        
+        if hotel_id_mapping:
+            final_h_ids = [hotel_id_mapping.get(hid, hid) for hid in final_h_ids]
+            # Also update existing hotels list for status preservation
+            for existing_hotel in existing_hotels:
+                if isinstance(existing_hotel, dict) and existing_hotel.get("id") in hotel_id_mapping:
+                    old_id = existing_hotel["id"]
+                    new_id = hotel_id_mapping[old_id]
+                    existing_hotel["id"] = new_id
+
+        # Infer statuses from DB items (LLM does not decide statuses)
+        # Upgrade/override status for any item we keep, but preserve existing statuses from trip table
+        f_idx = {fid: {"id": fid, "status": "available"} for fid in final_f_ids}
+        h_idx = {hid: {"id": hid, "status": "available"} for hid in final_h_ids}
+        
+        # First, preserve existing statuses from trip table (especially "booked")
+        for existing_flight in existing_flights:
+            if isinstance(existing_flight, dict) and existing_flight.get("id") in f_idx:
+                existing_status = existing_flight.get("status", "available")
+                if existing_status.lower() == "booked":
+                    f_idx[existing_flight["id"]]["status"] = "booked"
+        
+        for existing_hotel in existing_hotels:
+            if isinstance(existing_hotel, dict) and existing_hotel.get("id") in h_idx:
+                existing_status = existing_hotel.get("status", "available")
+                if existing_status.lower() == "booked":
+                    h_idx[existing_hotel["id"]]["status"] = "booked"
+        
+        # Second, apply provided statuses from the request (these override existing statuses)
+        for fid, provided_status in flight_statuses.items():
+            if fid in f_idx and provided_status:
+                f_idx[fid]["status"] = str(provided_status)
+        
+        for hid, provided_status in hotel_statuses.items():
+            if hid in h_idx and provided_status:
+                h_idx[hid]["status"] = str(provided_status)
+        
+        # Now infer statuses for items that don't have a status yet (using "available" as default)
+        for fid in list(f_idx.keys()):
+            # Skip if we already have a meaningful status
+            if f_idx[fid]["status"] not in ["available", "unavailable"]:
+                continue
+                
+            try:
+                res = flights_table.query(
+                    KeyConditionExpression=Key("flightId").eq(fid),
+                    ScanIndexForward=False,
+                    Limit=1
+                )
+                items = res.get("Items", [])
+                db_root = items[0] if items else {}
+                db = db_root.get("flightDetails", {})
+                f_idx[fid]["status"] = _infer_flight_status_from_item(db, f_idx[fid]["status"])
+            except Exception:
+                pass
+        
+        for hid in list(h_idx.keys()):
+            # Skip if we already have a meaningful status
+            if h_idx[hid]["status"] not in ["available", "unavailable"]:
+                continue
+                
+            try:
+                res = hotels_table.query(
+                    KeyConditionExpression=Key("hotelOfferId").eq(hid),
+                    ScanIndexForward=False,
+                    Limit=1
+                )
+                items = res.get("Items", [])
+                db_root = items[0] if items else {}
+                db = db_root.get("hotelOffersDetails", {})
+                h_idx[hid]["status"] = _infer_hotel_status_from_item(db, h_idx[hid]["status"])
+            except Exception:
+                pass
+        updated_flights = list(f_idx.values())
+        updated_hotels = list(h_idx.values())
+
+        # Upsert into trips table
+        try:
+            # Store tuple lists under canonical keys
+            trip_data_to_write = dict(trip_data)
+            # Convert to list-of-lists [[id,status], ...] for DynamoDB compatibility
+            def _dicts_to_list_of_lists(items):
+                out = []
+                for it in items:
+                    _id = it.get("id") if isinstance(it, dict) else None
+                    if _id is None:
+                        continue
+                    _status = it.get("status", "available") if isinstance(it, dict) else "available"
+                    out.append([str(_id), str(_status)])
+                return out
+
+            trip_data_to_write["flight_tuples"] = _dicts_to_list_of_lists(updated_flights)
+            trip_data_to_write["hotel_tuples"] = _dicts_to_list_of_lists(updated_hotels)
+            last_modified = datetime.now(timezone.utc).isoformat()
+            
+            _upsert_trip(user_id, chat_id, trip_data_to_write, flights, hotels, last_modified)
+        except Exception as e:
+            return _server_error(f"Failed to upsert trip: {str(e)}")
+
+        return {
+            "statusCode": 200,
+            "headers": headers,
+            "body": json.dumps({
+                "success": True,
+                "UserAndChatID": f"{user_id}:{chat_id}",
+                "last_modified": last_modified,
+            }),
+        }
+    
+    except Exception as e:
+        # Catch any unhandled exceptions and return a proper error response
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Unhandled exception in update_trip_card: {error_details}")
+        return _server_error(f"Internal server error: {str(e)}")

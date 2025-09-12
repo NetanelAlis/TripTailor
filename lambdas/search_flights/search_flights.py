@@ -89,7 +89,6 @@ def save_flight_details(flight_details):
                 'departureTime': departure_time,
             }
         )
-        print("Flight inserted successfully.")
         return flight_id
     except ClientError as e:
         if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
@@ -143,7 +142,6 @@ def store_token_in_db(token, expires_in):
             'expires_at': expires_at
         }
         service_tokens_table.put_item(Item=item)
-        print("Stored token in DB.")
     except ClientError as e:
         print("Failed to store token:", e)
 
@@ -173,8 +171,6 @@ def get_token():
 
 
 def lambda_handler(event, context):
-    print("start search flights lambda")
-
     # CORS headers
     response_headers = {
         'Access-Control-Allow-Origin': '*',
@@ -201,7 +197,6 @@ def lambda_handler(event, context):
     try:
         params = body['params']
         token = get_token()
-        print(f"Retrieved token: {token[:20] if token else 'None'}...")
         
         amadeus_headers = {
             "Authorization": f"Bearer {token}",
@@ -217,14 +212,11 @@ def lambda_handler(event, context):
                 dep_date = datetime.strptime(amadeus_params['departureDate'], '%Y-%m-%d')
                 ret_date = dep_date + timedelta(days=7)  # Default 7 days later
                 amadeus_params['returnDate'] = ret_date.strftime('%Y-%m-%d')
-                print(f"Added default returnDate: {amadeus_params['returnDate']}")
             except Exception:
                 print("Could not add default returnDate")
         
         # Remove any None or empty values
         amadeus_params = {k: v for k, v in amadeus_params.items() if v is not None and v != ''}
-        
-        print(f"Searching flights with params: {amadeus_params}")
         
         # Make request to Amadeus API
         response = requests.get(
@@ -233,29 +225,21 @@ def lambda_handler(event, context):
             params=amadeus_params
         )
 
-        print(f"Amadeus response status: {response.status_code}")
-        
         if response.status_code != 200:
             print(f"Amadeus error: {response.text}")
             
         response.raise_for_status()
         amadeus_data = response.json()
         
-        print(f"Found {len(amadeus_data.get('data', []))} flights")
-
         # Save flight details to DynamoDB and collect IDs
         out_ids = []
         for i, flight in enumerate(amadeus_data.get('data', [])):
             flight_id = save_flight_details(flight)
             if flight_id:
                 out_ids.append(flight_id)
-                # Debug: Print first few characters of ID and Amadeus ID
-                amadeus_id = flight.get('id', 'N/A')
-                print(f"Flight {i+1}: Amadeus ID {amadeus_id} -> Generated ID {flight_id[:16]}...")
             else:
                 print(f"Flight {i+1}: Failed to save (duplicate or error)")
 
-        print(f"Saved {len(out_ids)} flight IDs")
         amadeus_data['flightIds'] = out_ids
         
         return {

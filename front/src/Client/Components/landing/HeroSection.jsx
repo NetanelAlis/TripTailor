@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User } from '../../Entities/User.js';
 import { Button } from '../ui/button.jsx';
-import { Plane, LogIn, MessageSquare } from 'lucide-react';
+import { LogIn, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function HeroSection() {

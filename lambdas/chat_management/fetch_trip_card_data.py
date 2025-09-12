@@ -37,7 +37,6 @@ def _server_error(msg: str):
 
 def _fetch_compact_flight(f_id: str) -> Dict[str, Any]:
     try:
-        print(f"[fetch_trip_card] Fetching flight {f_id}")
         # Query by flightId since table might have composite key (flightId + timestamp)
         res = flights_table.query(
             KeyConditionExpression=Key("flightId").eq(f_id),
@@ -46,11 +45,9 @@ def _fetch_compact_flight(f_id: str) -> Dict[str, Any]:
         )
         items = res.get("Items", [])
         root = items[0] if items else {}
-        print(f"[fetch_trip_card] Flight root item keys: {list(root.keys()) if root else 'None'}")
         item = root.get("flightDetails", {})
-        print(f"[fetch_trip_card] Flight details keys: {list(item.keys()) if item else 'None'}")
         if not item:
-            print(f"[fetch_trip_card] No flight details found for {f_id}")
+            return {"id": f_id, "airline": "", "flight_number": "", "route": "", "departure": "", "arrival": "", "duration": "", "price": ""}
             return {"id": f_id, "airline": "", "flight_number": "", "route": "", "departure": "", "arrival": "", "duration": "", "price": ""}
 
         itinerary = (item.get("itineraries") or [{}])[0]
@@ -101,7 +98,6 @@ def _fetch_compact_flight(f_id: str) -> Dict[str, Any]:
             "duration": dur,
             "price": price,
         }
-        print(f"[fetch_trip_card] Flight {f_id} result: {result}")
         return result
     except Exception as e:
         print(f"[fetch_trip_card] Exception fetching flight {f_id}: {e}")
@@ -110,8 +106,6 @@ def _fetch_compact_flight(f_id: str) -> Dict[str, Any]:
 
 def _fetch_compact_hotel(h_id: str) -> Dict[str, Any]:
     try:
-        print(f"[fetch_trip_card] Fetching hotel {h_id}")
-        
         # First try to query by hotelOfferId (for regular hotels)
         res = hotels_table.query(
             KeyConditionExpression=Key("hotelOfferId").eq(h_id),
@@ -121,46 +115,32 @@ def _fetch_compact_hotel(h_id: str) -> Dict[str, Any]:
         items = res.get("Items", [])
         
         root = items[0] if items else {}
-        print(f"[fetch_trip_card] Hotel root item keys: {list(root.keys()) if root else 'None'}")
         
         # Check if this is a booked hotel (has hotelOffersDetails.booked = true) or regular hotel
         hotel_offers_details = root.get("hotelOffersDetails", {})
         is_booked = hotel_offers_details.get("booked", False)
         
         if is_booked:
-            print(f"[fetch_trip_card] Processing BOOKED hotel {h_id}")
             # For booked hotels, data is stored in hotelOffersDetails.hotelPricingData.data
             hotel_pricing_data = hotel_offers_details.get("hotelPricingData", {})
             pricing_data = hotel_pricing_data.get("data", {})
             
-            print(f"[fetch_trip_card] Hotel pricing data keys: {list(pricing_data.keys()) if pricing_data else 'None'}")
-            
             if not pricing_data:
-                print(f"[fetch_trip_card] No pricing data found for booked hotel {h_id}")
                 return {"id": h_id, "hotelId": "", "name": "", "location": "", "check_in": "", "check_out": "", "nights": "", "price_per_night": "", "overall_price": ""}
 
             hotel_info = pricing_data.get("hotel", {})
             offers = pricing_data.get("offers", [])
             hotel_offer = offers[0] if offers else {}
             
-            print(f"[fetch_trip_card] Booked hotel info: {hotel_info}")
-            print(f"[fetch_trip_card] Booked hotel offer keys: {list(hotel_offer.keys()) if hotel_offer else 'None'}")
-            
         else:
-            print(f"[fetch_trip_card] Processing REGULAR hotel {h_id}")
             item = hotel_offers_details
-            print(f"[fetch_trip_card] Hotel details keys: {list(item.keys()) if item else 'None'}")
-            print(f"[fetch_trip_card] Full hotelOffersDetails structure: {item}")
             if not item:
-                print(f"[fetch_trip_card] No hotel details found for {h_id}")
                 return {"id": h_id, "hotelId": "", "name": "", "location": "", "check_in": "", "check_out": "", "nights": "", "price_per_night": "", "overall_price": ""}
 
             hotel_info = item.get("hotel", {})
             offers = item.get("offers", [])
             hotel_offer = offers[0] if offers else {}
         
-        print(f"[fetch_trip_card] Hotel {h_id} hotel_info keys: {list(hotel_info.keys()) if hotel_info else 'None'}")
-        print(f"[fetch_trip_card] Hotel {h_id} hotel_info content: {hotel_info}")
         price_info = hotel_offer.get("price", {})
         total_price = price_info.get("total", "")
         currency = price_info.get("currency", "")
@@ -195,7 +175,6 @@ def _fetch_compact_hotel(h_id: str) -> Dict[str, Any]:
 
         # Extract hotelId for ratings API
         hotelId = hotel_info.get("hotelId", "")
-        print(f"[fetch_trip_card] Hotel {h_id} extracted hotelId: '{hotelId}'")
         
         result = {
             "id": h_id,
@@ -208,7 +187,6 @@ def _fetch_compact_hotel(h_id: str) -> Dict[str, Any]:
             "price_per_night": price_per_night,
             "overall_price": overall_price,
         }
-        print(f"[fetch_trip_card] Hotel {h_id} result: {result}")
         return result
     except Exception as e:
         print(f"[fetch_trip_card] Exception fetching hotel {h_id}: {e}")

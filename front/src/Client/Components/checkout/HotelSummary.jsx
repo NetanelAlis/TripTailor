@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import {
     formatCurrency,
-    convertToUserCurrency,
+    convertToUserCurrencyAmount,
     getUserPreferredCurrency,
     formatInUserCurrency,
 } from '../../utils/currencyConverter';

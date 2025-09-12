@@ -3,13 +3,7 @@ import { motion } from 'framer-motion';
 import { X, AlertTriangle } from 'lucide-react';
 import { Button } from './button.jsx';
 
-export default function ErrorModal({
-    isOpen,
-    onClose,
-    title,
-    message,
-    onRetry,
-}) {
+export default function ErrorModal({ isOpen, onClose, title, message }) {
     if (!isOpen) {
         // Ensure modal is completely removed from DOM
         return null;

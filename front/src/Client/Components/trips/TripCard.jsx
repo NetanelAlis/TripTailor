@@ -5,7 +5,6 @@ import { Badge } from '../ui/badge.jsx';
 import { Button } from '../ui/button.jsx';
 import {
     MessageSquare,
-    MapPin,
     Calendar,
     ChevronDown,
     ChevronUp,
@@ -19,7 +18,7 @@ import FlightTable from './FlightTable.jsx';
 import HotelTable from './HotelTable.jsx';
 import {
     formatCurrency,
-    convertToUserCurrency,
+    convertToUserCurrencyAmount,
     getUserPreferredCurrency,
 } from '../../utils/currencyConverter.js';
 import {
@@ -30,12 +29,6 @@ import {
     removeHotel,
 } from '../../../api/chatApi.js';
 import ErrorModal from '../ui/error-modal.jsx';
-import {
-    getAirlineName,
-    getAirportName,
-    getCityName,
-    getHotelChainName,
-} from '../../utils/travelHelpers.js';
 
 export default function TripCard({
     conversation,
@@ -77,10 +70,6 @@ export default function TripCard({
             // Update local state immediately for better UX
             setCurrentFlights((prev) => prev.filter((f) => f.id !== flightId));
             setSelectedFlights((prev) => prev.filter((f) => f.id !== flightId));
-
-            console.log(
-                `Flight ${flightId} removed successfully from trip ${conversation.id}`
-            );
         } catch (error) {
             console.error('Error removing flight:', error);
             // Optionally show error to user, but for now just log it
@@ -98,10 +87,6 @@ export default function TripCard({
             // Update local state immediately for better UX
             setCurrentHotels((prev) => prev.filter((h) => h.id !== hotelId));
             setSelectedHotels((prev) => prev.filter((h) => h.id !== hotelId));
-
-            console.log(
-                `Hotel ${hotelId} removed successfully from trip ${conversation.id}`
-            );
         } catch (error) {
             console.error('Error removing hotel:', error);
             // Optionally show error to user, but for now just log it
@@ -217,18 +202,7 @@ export default function TripCard({
                     }))
                     .filter((hotel) => hotel.hotelId); // Only include hotels with hotelId
 
-                console.log('🏨 TripCard: Selected hotels:', selectedHotels);
-                console.log(
-                    '🏨 TripCard: Hotels for ratings:',
-                    hotelsForRatings
-                );
-                console.log(
-                    '🏨 TripCard: Will call ratings API:',
-                    hotelsForRatings.length > 0
-                );
-
                 // Fetch hotel pricing and ratings in parallel
-                console.log('🏨 TripCard: Starting parallel API calls...');
                 const [hotelPricingResult, hotelRatingsResult] =
                     await Promise.all([
                         getHotelOffersPricing(hotelIds),
@@ -236,12 +210,6 @@ export default function TripCard({
                             ? getHotelRatings(hotelsForRatings)
                             : Promise.resolve({}),
                     ]);
-
-                console.log('🏨 TripCard: Parallel API calls completed');
-                console.log(
-                    '🏨 TripCard: Hotel ratings result:',
-                    hotelRatingsResult
-                );
 
                 hotelPricing = hotelPricingResult;
                 hotelRatings = hotelRatingsResult;
@@ -350,13 +318,19 @@ export default function TripCard({
         // Convert flight prices to user's preferred currency
         selectedFlights.forEach((flight) => {
             const { amount, currency } = parsePriceAndCurrency(flight.price);
-            totalInUserCurrency += convertToUserCurrency(amount, currency);
+            totalInUserCurrency += convertToUserCurrencyAmount(
+                amount,
+                currency
+            );
         });
 
         // Convert hotel prices to user's preferred currency
         selectedHotels.forEach((hotel) => {
             const { amount, currency } = parsePriceAndCurrency(hotel.price);
-            totalInUserCurrency += convertToUserCurrency(amount, currency);
+            totalInUserCurrency += convertToUserCurrencyAmount(
+                amount,
+                currency
+            );
         });
 
         if (totalInUserCurrency === 0) return '0';
@@ -625,15 +599,6 @@ export default function TripCard({
                                                             (hotel) => hotel.id
                                                         ); // This is the TripTailor hotel ID
 
-                                                console.log(
-                                                    'View bookings clicked - Flight IDs:',
-                                                    bookedFlightIds
-                                                );
-                                                console.log(
-                                                    'View bookings clicked - Hotel IDs:',
-                                                    bookedHotelIds
-                                                );
-
                                                 // Navigate to BookingSummary page with the IDs
                                                 navigate('/booking-summary', {
                                                     state: {
@@ -709,15 +674,6 @@ export default function TripCard({
                                                     (hotel) => hotel.isBooked
                                                 )
                                                 .map((hotel) => hotel.id); // This is the TripTailor hotel ID
-
-                                            console.log(
-                                                'View bookings clicked - Flight IDs:',
-                                                bookedFlightIds
-                                            );
-                                            console.log(
-                                                'View bookings clicked - Hotel IDs:',
-                                                bookedHotelIds
-                                            );
 
                                             // Navigate to BookingSummary page with the IDs
                                             navigate('/booking-summary', {

@@ -3,7 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '../Components/ui/button.jsx';
-import { convertToUserCurrency } from '../utils/currencyConverter.js';
+import {
+    convertToUserCurrencyAmount,
+    formatInUserCurrency,
+    getUserCurrencySymbol,
+} from '../utils/currencyConverter.js';
 import ErrorModal from '../Components/ui/error-modal.jsx';
 import {
     createFlightOrder,
@@ -959,7 +963,7 @@ export default function CheckoutPage() {
                 const flightPrice = item.pricingData.data.flightOffers[0].price;
                 return (
                     sum +
-                    convertToUserCurrency(
+                    convertToUserCurrencyAmount(
                         parseFloat(flightPrice.total),
                         flightPrice.currency
                     )
@@ -968,7 +972,7 @@ export default function CheckoutPage() {
                 // Hotel pricing - use the actual currency from the hotel data
                 const amount = parseFloat(item.price) || 0;
                 const currency = item.currency || 'USD';
-                return sum + convertToUserCurrency(amount, currency);
+                return sum + convertToUserCurrencyAmount(amount, currency);
             }
             return sum;
         }, 0);
@@ -1320,7 +1324,9 @@ export default function CheckoutPage() {
                     successMessage += `${hotelCount} hotel(s) booked.\n`;
                 }
 
-                successMessage += `Total: $${finalTotalPrice.toFixed(2)}\n`;
+                successMessage += `Total: ${getUserCurrencySymbol()}${finalTotalPrice.toFixed(
+                    2
+                )}\n`;
                 successMessage += `Confirmation details would be sent to ${bookingData.contactEmail}`;
 
                 alert(successMessage);

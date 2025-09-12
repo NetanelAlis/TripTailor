@@ -1,10 +1,29 @@
 import json
 import boto3
 from boto3.dynamodb.conditions import Key
+from decimal import Decimal
 
 # Initialize the DynamoDB client
 dynamodb = boto3.resource('dynamodb')
 user_table = dynamodb.Table('user')
+
+
+def convert_decimals(obj):
+    """
+    Recursively convert DynamoDB Decimal objects to int/float for JSON serialization.
+    """
+    if isinstance(obj, list):
+        return [convert_decimals(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_decimals(value) for key, value in obj.items()}
+    elif isinstance(obj, Decimal):
+        # Convert to int if it's a whole number, otherwise float
+        if obj % 1 == 0:
+            return int(obj)
+        else:
+            return float(obj)
+    else:
+        return obj
 
 
 def fetch_user_details(user_id, headers):
@@ -35,6 +54,9 @@ def fetch_user_details(user_id, headers):
 
         # Get the user data (should be the first item)
         user_data = user_info[0]
+        
+        # Convert any Decimal objects to regular numbers for JSON serialization
+        user_data = convert_decimals(user_data)
         
         # Return all user data
         return {
@@ -92,8 +114,9 @@ def lambda_handler(event, context):
     # CORS headers
     headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Credentials': 'false'
     }
 
     # Handle preflight OPTIONS request
@@ -124,4 +147,12 @@ def lambda_handler(event, context):
         }
 
     # Fetch user details
-    return fetch_user_details(user_id, headers)
+    try:
+        return fetch_user_details(user_id, headers)
+    except Exception as e:
+        print(f"[fetch_user_details] Unexpected error: {str(e)}")
+        return {
+            "statusCode": 500,
+            "headers": headers,
+            "body": json.dumps({"error": f"Internal server error: {str(e)}"})
+        }

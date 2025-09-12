@@ -209,7 +209,6 @@ export default function CountrySelector({
     placeholder = 'Select a country',
     className = '',
     disabled = false,
-    required = false,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');

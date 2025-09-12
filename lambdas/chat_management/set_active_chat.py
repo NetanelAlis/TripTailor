@@ -20,6 +20,7 @@ def set_active_chat_id(new_chat_id, user_id, headers):
             },
             ConditionExpression='attribute_exists(user_id)'  # Optional safety
         )
+        return {"success": True}
     except Exception as e:
         return {
             "statusCode": 500,
@@ -44,8 +45,9 @@ def lambda_handler(event, context):
     # CORS headers
     headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Credentials': 'false'
     }
 
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
@@ -81,9 +83,12 @@ def lambda_handler(event, context):
             "body": json.dumps({"error": "chat_id is required"})
         }
 
-    set_active_chat_id(chat_id, user_id, headers)
+    # Set active chat and handle potential error
+    result = set_active_chat_id(chat_id, user_id, headers)
+    if "statusCode" in result and result["statusCode"] != 200:
+        return result  # Return error response from set_active_chat_id
+    
     chat_messages = get_chat_messages(chat_id, user_id)
-
 
     return {
         "statusCode": 200,

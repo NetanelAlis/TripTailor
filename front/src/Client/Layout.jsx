@@ -33,7 +33,7 @@ const navigationItems = [
         url: '/chat?new=true',
         icon: MessageSquare,
     },
-    { title: 'Trip Summary', url: '/chat/history', icon: Map },
+    { title: 'Trip Cards', url: '/chat/history', icon: Map },
     { title: 'Account', url: '/account', icon: UserIcon },
 ];
 
@@ -138,12 +138,10 @@ const SidebarContentComponent = () => {
                                             (location.pathname ===
                                                 item.url.split('?')[0] &&
                                                 !currentConversationId &&
-                                                item.title !==
-                                                    'Trip Summary') ||
+                                                item.title !== 'Trip Cards') ||
                                             (location.pathname ===
                                                 '/chat/history' &&
-                                                item.title ===
-                                                    'Trip Summary') ||
+                                                item.title === 'Trip Cards') ||
                                             (location.pathname === '/account' &&
                                                 item.title === 'Account')
                                                 ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'

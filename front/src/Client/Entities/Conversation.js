@@ -53,10 +53,6 @@ export class Conversation {
     static async list(sortBy = '-updated_date', limit = undefined) {
         try {
             const response = await getUserChats();
-            console.log(
-                'Conversation.list: Response from getUserChats:',
-                response
-            );
 
             let chats = Conversation.normalizeChatsResponse(response);
 
@@ -66,10 +62,6 @@ export class Conversation {
                 const coerced = Number(rawCount);
                 if (!Number.isNaN(coerced)) backendCount = coerced;
             }
-            console.log(
-                'Conversation.list: backend reported count:',
-                backendCount
-            );
 
             if (!Array.isArray(chats) || chats.length === 0) {
                 const count = Number(response?.number_of_chats || 0);
@@ -157,7 +149,7 @@ export class Conversation {
         }
     }
 
-    static async filter(filters = {}, sortBy = 'created_date') {
+    static async filter(filters = {}) {
         try {
             const response = await getUserChats();
             let chats = Conversation.normalizeChatsResponse(response);

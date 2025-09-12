@@ -149,14 +149,27 @@ export function convertCurrency(amount, fromCurrency, toCurrency) {
 }
 
 /**
- * Convert amount to user's preferred currency
+ * Convert amount to user's preferred currency with fallback
  * @param {number} amount - Amount to convert
  * @param {string} fromCurrency - Source currency code
- * @returns {number} - Converted amount in user's preferred currency
+ * @returns {object} - Object with converted amount and actual currency used
  */
 export function convertToUserCurrency(amount, fromCurrency) {
     const userCurrency = getUserPreferredCurrency();
-    return convertCurrency(amount, fromCurrency, userCurrency);
+
+    // Check if conversion is possible
+    if (fromCurrency === userCurrency) {
+        return { amount, currency: userCurrency };
+    }
+
+    const rates = EXCHANGE_RATES[fromCurrency];
+    if (!rates || !rates[userCurrency]) {
+        // Fallback: keep original currency and amount
+        return { amount, currency: fromCurrency };
+    }
+
+    const convertedAmount = convertCurrency(amount, fromCurrency, userCurrency);
+    return { amount: convertedAmount, currency: userCurrency };
 }
 
 /**
@@ -189,15 +202,47 @@ export function formatCurrency(amount, currencyCode = 'USD', locale = 'en-US') {
 }
 
 /**
- * Format amount in user's preferred currency
+ * Convert amount to user's preferred currency (backward compatibility)
+ * @param {number} amount - Amount to convert
+ * @param {string} fromCurrency - Source currency code
+ * @returns {number} - Converted amount in user's preferred currency (or original amount if conversion fails)
+ */
+export function convertToUserCurrencyAmount(amount, fromCurrency) {
+    const result = convertToUserCurrency(amount, fromCurrency);
+    return result.amount;
+}
+
+/**
+ * Format amount in user's preferred currency with fallback
  * @param {number} amount - Amount to format
  * @param {string} fromCurrency - Source currency code
- * @returns {string} - Formatted amount in user's preferred currency
+ * @returns {string} - Formatted amount in user's preferred currency or original currency if conversion fails
  */
 export function formatInUserCurrency(amount, fromCurrency) {
+    const result = convertToUserCurrency(amount, fromCurrency);
+    return formatCurrency(result.amount, result.currency);
+}
+
+/**
+ * Check if currency conversion is supported
+ * @param {string} fromCurrency - Source currency code
+ * @param {string} toCurrency - Target currency code
+ * @returns {boolean} - True if conversion is supported
+ */
+export function isConversionSupported(fromCurrency, toCurrency) {
+    if (fromCurrency === toCurrency) return true;
+    const rates = EXCHANGE_RATES[fromCurrency];
+    return !!(rates && rates[toCurrency]);
+}
+
+/**
+ * Check if conversion to user's preferred currency is supported
+ * @param {string} fromCurrency - Source currency code
+ * @returns {boolean} - True if conversion to user's preferred currency is supported
+ */
+export function isUserCurrencyConversionSupported(fromCurrency) {
     const userCurrency = getUserPreferredCurrency();
-    const convertedAmount = convertToUserCurrency(amount, fromCurrency);
-    return formatCurrency(convertedAmount, userCurrency);
+    return isConversionSupported(fromCurrency, userCurrency);
 }
 
 /**
@@ -239,6 +284,7 @@ export function isCurrencySupported(currencyCode) {
 export default {
     convertCurrency,
     convertToUserCurrency,
+    convertToUserCurrencyAmount,
     formatCurrency,
     formatInUserCurrency,
     getCurrencySymbol,
@@ -246,4 +292,6 @@ export default {
     getUserPreferredCurrency,
     getAvailableCurrencies,
     isCurrencySupported,
+    isConversionSupported,
+    isUserCurrencyConversionSupported,
 };

@@ -59,10 +59,36 @@ def generate_hotel_offers_id(hotel_item):
     return hashlib.sha256(signature.encode()).hexdigest()
 
 def convert_date_yyyy_mm_dd_to_epoch(date_str):
+    """Convert date string to epoch timestamp with 24-hour buffer for TTL"""
     dt = datetime.fromisoformat(date_str)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
-    return int(dt.timestamp())
+    # Add 24 hours (86400 seconds) buffer like flights
+    return int(dt.timestamp()) + 86400
+
+def get_checkout_ttl_from_hotel_offers(hotel_item):
+    """Extract the latest checkout date from hotel offers and convert to TTL timestamp"""
+    try:
+        latest_checkout = None
+        
+        # Check offers for checkout dates
+        for offer in hotel_item.get("offers", []):
+            checkout_date = offer.get('checkOutDate')
+            if checkout_date:
+                if latest_checkout is None or checkout_date > latest_checkout:
+                    latest_checkout = checkout_date
+        
+        # If we found a checkout date, convert it to TTL timestamp
+        if latest_checkout:
+            return convert_date_yyyy_mm_dd_to_epoch(latest_checkout)
+        
+        # Fallback: if no checkout date found, set TTL to 30 days from now
+        return int(time.time()) + (30 * 24 * 60 * 60)  # 30 days
+        
+    except Exception as e:
+        print(f"Error calculating checkout TTL: {e}")
+        # Fallback: 30 days from now
+        return int(time.time()) + (30 * 24 * 60 * 60)
 
 # ===== Persistence =====
 def save_hotel_details(hotel_item):
@@ -70,6 +96,7 @@ def save_hotel_details(hotel_item):
     try:
         hotel_offer_id = generate_hotel_offers_id(hotel_item)
         safe_item = to_dynamodb_compatible(copy.deepcopy(hotel_item))  # רק לשמירה בדיינמו
+        checkout_ttl = get_checkout_ttl_from_hotel_offers(hotel_item)
 
         hotels_table.put_item(
             ConditionExpression="attribute_not_exists(hotelOfferId)",
@@ -77,13 +104,12 @@ def save_hotel_details(hotel_item):
                 'hotelOfferId': hotel_offer_id,
                 'timestamp': int(time.time() * 1000),
                 'hotelOffersDetails': safe_item,
+                'checkoutTTL': checkout_ttl,  # TTL attribute
             }
         )
-        print("Hotel offers inserted successfully.")
         return hotel_offer_id
     except ClientError as e:
         if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-            print("Hotel offers already exist. Skipping insert.")
             return generate_hotel_offers_id(hotel_item)
         raise
 
@@ -97,7 +123,6 @@ def get_token_from_db():
             'tokenType': 'hotel-search'
         })
         item = response.get('Item')
-        print("Retrieved token from DB:", item)
         if item and item.get('id') == TOKEN_KEY:
             if time.time() < item['expires_at']:
                 return item['token']
@@ -117,7 +142,6 @@ def store_token_in_db(token, expires_in):
             'expires_at': expires_at
         }
         service_tokens_table.put_item(Item=item)
-        print("Stored token in DB:", item)
     except ClientError as e:
         print("Failed to store token:", e)
 
@@ -129,7 +153,6 @@ def get_token_from_amadeus():
         "client_secret": CLIENT_SECRET
     }
     response = http_post(AMADEUS_GET_TOKEN_URL, headers=headers, data=data)
-    print("Amadeus token response:", response.text)
     return response.json()
 
 def get_token():
@@ -142,8 +165,6 @@ def get_token():
 
 # ===== Lambda =====
 def lambda_handler(event, context):
-    print("start search hotels lambda")
-
     response_headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'OPTIONS,POST',
@@ -160,7 +181,6 @@ def lambda_handler(event, context):
         return {"statusCode": 400, 'headers': response_headers, "body": json.dumps({"error": "Invalid JSON"})}
 
     try:
-        print("body:", body)
         params = body['params']
         token = get_token()
         amadeus_headers = {
@@ -175,14 +195,9 @@ def lambda_handler(event, context):
 
         # הפרמטרים רשות בשלב זה (אפשר להרחיב שימוש בהם בהמשך)
         max_results = int(params.get("max", 6))
-
         hotel_list_query = {"cityCode": city_code}
-        print("sending Hotel List request with:", hotel_list_query)
-
         r1 = http_get(HOTELS_BY_CITY_URL, headers=amadeus_headers, params=hotel_list_query)
         hotels_list = r1.json().get("data", [])
-        print(f"Hotel List found: {len(hotels_list)}")
-
         hotel_ids = [h.get("hotelId") for h in hotels_list if h.get("hotelId")]
         if not hotel_ids:
             return {'statusCode': 200, 'headers': response_headers, 'body': json.dumps({"data": []})}
@@ -207,10 +222,8 @@ def lambda_handler(event, context):
             # אם כבר עבד לך עם 'currency' שמור; אם צריך 'currencyCode' – החלף כאן.
             hotels_offers_query["currency"] = currency
 
-        print("sending Hotel Offers request with:", hotels_offers_query)
         r2 = http_get(HOTEL_OFFERS_URL, headers=amadeus_headers, params=hotels_offers_query)
         offers = r2.json()
-        print("Hotel Offers found:", offers.get("data", []))
 
         # -------- Optional local filter by maxPrice --------
         max_price = params.get("maxPrice")
@@ -234,15 +247,11 @@ def lambda_handler(event, context):
         chat_id = body.get('chat_id')
 
         out_ids = []
-        print(f"[search_hotels] Processing {len(offers.get('data', []))} hotel items")
         for i, hotel_item in enumerate(offers.get('data', [])):
-            print(f"[search_hotels] Processing hotel item {i}")
             hotel_offer_id = save_hotel_details(hotel_item)  # ממיר float→Decimal בפנים
-            print(f"[search_hotels] Generated hotel_offer_id: {hotel_offer_id}")
             if hotel_offer_id:
                 out_ids.append(hotel_offer_id)
 
-        print(f"[search_hotels] Final out_ids: {out_ids}")
         # החזרה ללקוח – שומר על JSON נקי; אם איכשהו נכנס Decimal, default=str ימנע שגיאה
         offers['hotelOfferIds'] = out_ids
         return {

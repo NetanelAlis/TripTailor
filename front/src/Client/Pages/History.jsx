@@ -239,7 +239,7 @@ export default function HistoryPage() {
             <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
                 <div className="text-center space-y-3">
                     <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-                        Trip Summary
+                        Trip Cards
                     </h1>
                     <p className="text-slate-600">
                         Manage and book your planned trips

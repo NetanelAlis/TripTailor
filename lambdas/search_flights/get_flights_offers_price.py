@@ -132,7 +132,6 @@ def _price_flight_offer(token: str, flight_offer: dict, include_options=None):
 
 def _price_multiple_flight_offers(token: str, flight_offers: list, include_options=None):
     """Call Amadeus Flight Offers Price API with multiple flight offers and return JSON response."""
-    print("_price_multiple_flight_offers: Starting API call")
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -145,9 +144,6 @@ def _price_multiple_flight_offers(token: str, flight_offers: list, include_optio
         include_params = ','.join(include_options)
         url += f"?include={include_params}"
 
-    print(f"API URL: {url}")
-    print(f"Number of flight offers: {len(flight_offers)}")
-
     payload = {
         "data": {
             "type": "flight-offers-pricing",
@@ -155,19 +151,14 @@ def _price_multiple_flight_offers(token: str, flight_offers: list, include_optio
         }
     }
 
-    print(f"Payload size: {len(json.dumps(payload))} characters")
-
     try:
-        print("Making HTTP request to Amadeus API")
         r = requests.post(url, headers=headers, data=json.dumps(payload))
-        print(f"Response status code: {r.status_code}")
 
         if r.status_code != 200:
             print(f"Error response: {r.text}")
 
         r.raise_for_status()
         response_json = r.json()
-        print("API call successful, returning response")
         return response_json
     except requests.HTTPError as e:
         print(f"HTTP Error: {e}")
@@ -238,38 +229,28 @@ def lambda_handler(event, context):
         return {"statusCode": 400, "headers": response_headers, "body": json.dumps({"error": "Missing flightId or flightIds"})}
 
     try:
-        print(f"Processing flight IDs: {flight_ids}")
-
         # Get all flight offers from database
         flight_offers = []
         for flight_id in flight_ids:
-            print(f"Fetching flight {flight_id} from database")
             flight_offer = _get_flight_offer_by_id(flight_id)
             if not flight_offer:
                 print(f"Flight {flight_id} not found in database")
                 return {"statusCode": 404, "headers": response_headers, "body": json.dumps({"error": f"Flight {flight_id} not found"})}
-            print(f"Found flight {flight_id}: {flight_offer.keys() if isinstance(flight_offer, dict) else 'not dict'}")
             flight_offers.append(flight_offer)
 
         # Convert Decimal types for JSON serialization
         flight_offers = [_decimal_to_native(offer) for offer in flight_offers]
 
         # Get Amadeus token
-        print("Getting Amadeus token")
         token = get_token()
-        print(f"Token obtained: {token[:20]}..." if token else "No token obtained")
 
         # Extract include options from request
         include_options = body.get('include', [])
         if isinstance(include_options, str):
             include_options = [include_options] if include_options else []
-        print(f"Include options: {include_options}")
-        print(f"Number of flight offers to price: {len(flight_offers)}")
 
         # Call Amadeus Flight Offers Price API with all flight offers
-        print("Calling Amadeus Flight Offers Price API")
         priced = _price_multiple_flight_offers(token, flight_offers, include_options)
-        print("Amadeus API call successful")
 
         # Return pricing response
         return {

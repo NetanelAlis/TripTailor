@@ -1,13 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import {
-    Sparkles,
-    Plane,
-    MapPin,
-    Calendar,
-    Users,
-    DollarSign,
-} from 'lucide-react';
+import { Plane, MapPin, Calendar, Users, DollarSign } from 'lucide-react';
 
 const WelcomeScreen = ({ onQuickStart }) => {
     const quickStartOptions = [

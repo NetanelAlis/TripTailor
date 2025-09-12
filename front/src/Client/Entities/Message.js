@@ -17,23 +17,14 @@ export class Message {
     }
 
     static async create(messageData) {
-        console.log('Message.create: Starting with messageData:', messageData);
         const message = new Message(messageData);
-        console.log('Message.create: Created message object:', message);
 
         if (message.sender === 'user') {
             try {
-                console.log(
-                    'Message.create: Sending to backend with content:',
-                    message.content,
-                    'conversation_id:',
-                    message.conversation_id
-                );
                 const response = await sendMessageToChatbot(
                     message.content,
                     message.conversation_id
                 );
-                console.log('Message.create: Backend response:', response);
 
                 let success = false;
                 let aiReply = '';
@@ -43,10 +34,6 @@ export class Message {
                     response?.conversation_id ||
                     response?.chatId;
                 if (backendChatId) {
-                    console.log(
-                        'Message.create: Backend authoritative chat id:',
-                        backendChatId
-                    );
                     if (
                         !message.conversation_id ||
                         String(message.conversation_id) !==
@@ -70,13 +57,6 @@ export class Message {
                     aiReply = response;
                 }
 
-                console.log(
-                    'Message.create: Success:',
-                    success,
-                    'AI Reply:',
-                    aiReply
-                );
-
                 if (success && aiReply) {
                     const flightIdsFromResponse =
                         response?.flight_ids ||
@@ -88,14 +68,6 @@ export class Message {
                         response?.hotelOfferIds ||
                         (response?.metadata && response.metadata.hotel_ids) ||
                         [];
-                    console.log(
-                        'Message.create: Extracted flight_ids:',
-                        flightIdsFromResponse
-                    );
-                    console.log(
-                        'Message.create: Extracted hotel_ids:',
-                        hotelIdsFromResponse
-                    );
                     const assistantMessage = new Message({
                         conversation_id:
                             backendChatId || message.conversation_id,
@@ -117,10 +89,6 @@ export class Message {
                         };
                     }
 
-                    console.log(
-                        'Message.create: Created assistant message:',
-                        assistantMessage
-                    );
                     return [message, assistantMessage];
                 } else {
                     console.warn(
@@ -137,20 +105,11 @@ export class Message {
         return [message];
     }
 
-    static async filter(filters = {}, sortBy = 'created_date') {
-        console.log('Message.filter: Starting with filters:', filters);
+    static async filter(filters = {}) {
         if (filters.conversation_id) {
             try {
-                console.log(
-                    'Message.filter: Fetching messages for conversation:',
-                    filters.conversation_id
-                );
                 const messages = await fetchChatMessages(
                     filters.conversation_id
-                );
-                console.log(
-                    'Message.filter: Raw messages from backend:',
-                    messages
                 );
 
                 let messageArray = [];
@@ -172,10 +131,6 @@ export class Message {
 
                 const processedMessages = messageArray.map(
                     (msg) => new Message(msg)
-                );
-                console.log(
-                    'Message.filter: Processed messages:',
-                    processedMessages
                 );
                 return processedMessages;
             } catch (error) {

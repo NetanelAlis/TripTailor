@@ -44,8 +44,6 @@ def fetch_flight_details(flight_ids: List[str]) -> Dict[str, Any]:
     
     for flight_id in flight_ids:
         try:
-            print(f"[fetch_booking_data] Fetching flight details for ID: {flight_id}")
-            
             # Query the Flights table using the flight ID as partition key
             response = flights_table.query(
                 KeyConditionExpression=Key("flightId").eq(flight_id),
@@ -68,7 +66,6 @@ def fetch_flight_details(flight_ids: List[str]) -> Dict[str, Any]:
                     "departureTime": flight_item.get("departureTime")
                 })
                 
-                print(f"[fetch_booking_data] Found flight details for {flight_id}")
             else:
                 print(f"[fetch_booking_data] No flight found for ID: {flight_id}")
                 flight_data[flight_id] = None
@@ -88,8 +85,6 @@ def fetch_hotel_details(hotel_ids: List[str]) -> Dict[str, Any]:
     
     for hotel_id in hotel_ids:
         try:
-            print(f"[fetch_booking_data] Fetching hotel details for ID: {hotel_id}")
-            
             # First try to query by hotelOfferId (for regular hotels where TripTailor ID = partition key)
             response = hotels_table.query(
                 KeyConditionExpression=Key("hotelOfferId").eq(hotel_id),
@@ -97,16 +92,6 @@ def fetch_hotel_details(hotel_ids: List[str]) -> Dict[str, Any]:
                 Limit=1
             )
             items = response.get("Items", [])
-            
-            # If not found, try to scan by tripTailorHotelId (for booked hotels)
-            if not items:
-                print(f"[fetch_booking_data] Hotel {hotel_id} not found by hotelOfferId, scanning by tripTailorHotelId...")
-                response = hotels_table.scan(
-                    FilterExpression=Attr("tripTailorHotelId").eq(hotel_id),
-                    Limit=50
-                )
-                items = response.get("Items", [])
-                print(f"[fetch_booking_data] Scan found {len(items)} items with tripTailorHotelId = {hotel_id}")
             
             if items:
                 hotel_item = items[0]
@@ -131,9 +116,7 @@ def fetch_hotel_details(hotel_ids: List[str]) -> Dict[str, Any]:
                 # Convert Decimals before storing
                 hotel_data[hotel_id] = convert_decimals(hotel_data_item)
                 
-                print(f"[fetch_booking_data] Found hotel details for {hotel_id} (booked: {is_booked})")
             else:
-                print(f"[fetch_booking_data] No hotel found for ID: {hotel_id}")
                 hotel_data[hotel_id] = None
                 
         except Exception as e:
@@ -180,10 +163,6 @@ def lambda_handler(event, context):
         flight_ids = body.get("tripTailorFlightIds", [])
         hotel_ids = body.get("tripTailorHotelIds", [])
         
-        print(f"[fetch_booking_data] Received request for {len(flight_ids)} flights and {len(hotel_ids)} hotels")
-        print(f"[fetch_booking_data] Flight IDs: {flight_ids}")
-        print(f"[fetch_booking_data] Hotel IDs: {hotel_ids}")
-        
         # Validate input
         if not isinstance(flight_ids, list):
             return {
@@ -220,8 +199,6 @@ def lambda_handler(event, context):
                 "hotelsFound": len([h for h in hotel_data.values() if h is not None])
             }
         })
-        
-        print(f"[fetch_booking_data] Successfully fetched {response_data['summary']['flightsFound']}/{len(flight_ids)} flights and {response_data['summary']['hotelsFound']}/{len(hotel_ids)} hotels")
         
         return {
             "statusCode": 200,
